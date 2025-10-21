@@ -624,9 +624,9 @@ export default {
         border-left: 0.5px solid #e6e6e6;*/
         .page-container {
           height: 100%;
-          min-width: 1200px;
+          min-width: 1250px;
           overflow-x: auto;
-          padding-right: 6px;
+          padding-right: 2px;
         }
       }
       /deep/ .el-menu-item {

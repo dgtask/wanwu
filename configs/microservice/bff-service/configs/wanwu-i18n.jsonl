@@ -270,6 +270,7 @@
 {"code":150007,"key":"rag_update_err","langs":{"zh":"更新文本问答错误：%v"}}
 {"code":150008,"key":"rag_chat_err","langs":{"zh":"问答错误：%v"}}
 {"code":150009,"key":"rag_list_by_ids_err","langs":{"zh":"id列表为空：%v"}}
+{"code":150010,"key":"rag_duplicate_name","langs":{"zh":"已存在同名文本问答"}}
 {"code":160001,"key":"assistant_create","langs":{"zh":"创建智能体错误: %v"}}
 {"code":160001,"key":"assistant_update","langs":{"zh":"更新智能体错误: %v"}}
 {"code":160001,"key":"assistant_delete","langs":{"zh":"删除智能体错误: %v"}}
@@ -283,6 +284,7 @@
 {"code":160001,"key":"assistant_knowledgeBaseConfig_unmarshal","langs":{"zh":"智能体knowledgeBase配置解析失败: %v"}}
 {"code":160001,"key":"assistant_onlineSearchConfig_unmarshal","langs":{"zh":"智能体onlineSearch配置解析失败: %v"}}
 {"code":160001,"key":"assistant_safetyConfig_unmarshal","langs":{"zh":"智能体safety配置解析失败: %v"}}
+{"code":160001,"key":"assistant_copy","langs":{"zh":"智能体复制错误: %v"}}
 {"code":160002,"key":"assistant_action_update","langs":{"zh":"更新action错误: %v"}}
 {"code":160002,"key":"assistant_action_get","langs":{"zh":"获取action错误: %v"}}
 {"code":160002,"key":"assistant_actions_get_by_assistant_id","langs":{"zh":"获取action错误: %v"}}

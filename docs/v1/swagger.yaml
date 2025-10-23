@@ -5071,6 +5071,34 @@ paths:
       summary: 更新RAG配置信息
       tags:
       - rag
+  /appspace/rag/copy:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 复制RAG的请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.RagReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/request.RagReq'
+              type: object
+      security:
+      - JWT: []
+      summary: 复制RAG
+      tags:
+      - rag
   /appspace/workflow:
     post:
       consumes:

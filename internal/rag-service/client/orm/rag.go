@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-
 	"github.com/UnicomAI/wanwu/api/proto/common"
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	rag_service "github.com/UnicomAI/wanwu/api/proto/rag-service"
@@ -283,4 +282,49 @@ func (c *Client) FetchRagFirst(ctx context.Context, ragId string) (*model.RagInf
 		return nil, toErrStatus("rag_get_err", "failed to fetch rag: "+err.Error())
 	}
 	return rag, nil
+}
+
+func (c *Client) FetchRagFirstByName(ctx context.Context, name, userId, orgId string) (*model.RagInfo, *err_code.Status) {
+	if name == "" {
+		return nil, toErrStatus("rag_get_err", "name is empty")
+	}
+	rag := &model.RagInfo{}
+	if err := sqlopt.SQLOptions(sqlopt.WithName(name), sqlopt.WithUserID(userId), sqlopt.WithOrgID(orgId)).
+		Apply(c.db.WithContext(ctx)).First(rag).Error; err != nil {
+		return nil, toErrStatus("rag_get_err", "failed to fetch rag: "+err.Error())
+	}
+	return rag, nil
+}
+
+func (c *Client) FetchRagCopyIndex(ctx context.Context, name, userId, orgId string) (int, *err_code.Status) {
+	if name == "" {
+		return 0, toErrStatus("rag_get_err", "name is empty")
+	}
+	prefix := name + "_"
+	var maxIndex *int
+	// 找出所有符合条件记录中最大的索引号
+	query := `
+        SELECT MAX(CAST(REPLACE(brief_name, ?, '') AS UNSIGNED)) 
+		FROM rag_info 
+		WHERE brief_name LIKE ? AND brief_name REGEXP ?
+    `
+	params := []interface{}{prefix, prefix + "%", "^" + prefix + "[0-9]+$"}
+	if userId != "" {
+		query += " AND user_id = ?"
+		params = append(params, userId)
+	}
+	if orgId != "" {
+		query += " AND org_id = ?"
+		params = append(params, orgId)
+	}
+	err := c.db.WithContext(ctx).Raw(query, params...).Scan(&maxIndex).Error
+	if err != nil {
+		return 0, toErrStatus("rag_get_err", "failed to fetch max rag copy index: "+err.Error())
+	}
+	// 没有匹配的记录
+	if maxIndex == nil {
+		return 1, nil
+	}
+	// 返回最大索引 + 1
+	return *maxIndex + 1, nil
 }

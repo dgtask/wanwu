@@ -24,6 +24,8 @@ service RagService {
   rpc ListRag(RagListReq) returns (RagListResp) {}
   // 根据 ragIds 获取 rag 列表
   rpc GetRagByIds(GetRagByIdsReq) returns (AppBriefList) {}
+  // 复制 rag
+  rpc CopyRag(CopyRagReq) returns (CreateRagResp) {}
 }
 message Identity {
   string userId = 1;
@@ -50,6 +52,7 @@ message ChatRagResp {
 message UpdateRagReq{
   string ragId = 1;
   common.AppBriefConfig appBrief = 2;
+  Identity identity = 3;
 }
 
 message UpdateRagConfigReq{
@@ -143,4 +146,9 @@ message GetRagByIdsReq{
 
 message AppBriefList{
   repeated common.AppBrief ragInfos = 1;
+}
+
+message CopyRagReq{
+  string ragId = 1;
+  Identity identity = 2;
 }

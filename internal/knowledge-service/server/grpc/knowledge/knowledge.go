@@ -258,11 +258,16 @@ func buildMetaList(req *knowledgebase_service.UpdateKnowledgeMetaValueReq, docMe
 }
 
 func handleReqMetaList(metaList []*knowledgebase_service.MetaValueOperation) (reqMetaList []*knowledgebase_service.MetaValueOperation) {
+	if len(metaList) > 100 {
+		log.Infof("metaList size exceeds 100")
+		metaList = metaList[:100]
+	}
 	keyMap := make(map[string]*knowledgebase_service.MetaValueOperation)
 	for _, meta := range metaList {
 		if _, exists := keyMap[meta.MetaInfo.Key]; !exists {
 			keyMap[meta.MetaInfo.Key] = meta
 		} else {
+			// 同一key优先级：删除 > 更新 > 新增
 			if meta.Option == MetaOperationDelete {
 				keyMap[meta.MetaInfo.Key] = meta
 			} else if meta.Option == MetaOperationUpdate {

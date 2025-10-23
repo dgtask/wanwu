@@ -28,10 +28,14 @@ func CreateRag(ctx *gin.Context, userId, orgId string, req request.AppBriefConfi
 	}, err
 }
 
-func UpdateRag(ctx *gin.Context, req request.RagBrief) error {
+func UpdateRag(ctx *gin.Context, req request.RagBrief, userId, orgId string) error {
 	_, err := rag.UpdateRag(ctx.Request.Context(), &rag_service.UpdateRagReq{
 		RagId:    req.RagID,
 		AppBrief: appBriefConfigModel2Proto(req.AppBriefConfig),
+		Identity: &rag_service.Identity{
+			UserId: userId,
+			OrgId:  orgId,
+		},
 	})
 	return err
 }
@@ -268,4 +272,20 @@ func convertRagMetaFilterToParams(metaFilter *rag_service.RagMetaFilter) *reques
 		FilterLogicType:  metaFilter.FilterLogicType,
 		MetaFilterParams: filterParams, // 映射过滤条件列表
 	}
+}
+
+func CopyRag(ctx *gin.Context, userId, orgId string, req request.RagReq) (*request.RagReq, error) {
+	resp, err := rag.CopyRag(ctx.Request.Context(), &rag_service.CopyRagReq{
+		Identity: &rag_service.Identity{
+			UserId: userId,
+			OrgId:  orgId,
+		},
+		RagId: req.RagID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &request.RagReq{
+		RagID: resp.RagId,
+	}, err
 }

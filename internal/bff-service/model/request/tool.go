@@ -49,12 +49,6 @@ type ToolSquareAPIKeyReq struct {
 
 func (req *ToolSquareAPIKeyReq) Check() error { return nil }
 
-type ToolSelectReq struct {
-	ToolName string `json:"toolName"` // 工具名称
-}
-
-func (req *ToolSelectReq) Check() error { return nil }
-
 type ToolActionListReq struct {
 	ToolId   string `json:"toolId" validate:"required"`                        // 工具id
 	ToolType string `json:"toolType" validate:"required,oneof=builtin custom"` // 工具类型

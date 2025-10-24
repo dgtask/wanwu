@@ -47,11 +47,11 @@ type ToolSquareInfo struct {
 }
 
 type ToolSquareActions struct {
-	NeedApiKeyInput bool      `json:"needApiKeyInput"` // 是否需要apiKey输入
-	APIKey          string    `json:"apiKey"`          // apiKey
-	Tools           []MCPTool `json:"tools"`           // action列表
-	Detail          string    `json:"detail"`          // 详细描述
-	ActionSum       int64     `json:"actionSum"`       // action总数
+	NeedApiKeyInput bool             `json:"needApiKeyInput"` // 是否需要apiKey输入
+	APIKey          string           `json:"apiKey"`          // apiKey
+	Tools           []*protocol.Tool `json:"tools"`           // action列表
+	Detail          string           `json:"detail"`          // 详细描述
+	ActionSum       int64            `json:"actionSum"`       // action总数
 }
 
 type ToolSelect struct {

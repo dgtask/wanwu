@@ -180,7 +180,8 @@
                             "gen_file_url_list":n.responseFileUrls || [],
                             "isOpen":true,
                             toolText:'已使用工具',
-                            thinkText:'已深度思考'
+                            thinkText:'已深度思考',
+                            showScrollBtn:null
                         }
                     }) : []
                     this.$refs['session-com'].replaceHistory(history)

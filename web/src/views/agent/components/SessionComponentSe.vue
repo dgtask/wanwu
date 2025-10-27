@@ -48,12 +48,12 @@
                   class="echo-doc-box"
                   v-if="hasFiles(n)"
                 >
-                 <div v-for="(file,j) in n.fileList" :key="`${j}sdsl`">
-                  <div v-if="hasImgs(n,file)" class="docInfo-img-container">
-                      <img
+                <el-button v-show="canScroll(i,n.showScrollBtn)" icon="el-icon-arrow-left " @click="prev($event,i)" circle class="scroll-btn left" size="mini" type="primary"></el-button>
+                 <div class="imgList" :ref="`imgList-${i}`">
+                 <div v-for="(file,j) in n.fileList" :key="`${j}sdsl`" class="docInfo-img-container">
+                      <img v-if="hasImgs(n,file)"
                         :src="file.fileUrl"
                         class="docIcon imgIcon" />
-                  </div>
                   <div v-else class="docInfo-container">
                   <img
                     :src="require('@/assets/imgs/fileicon.png')"
@@ -66,6 +66,8 @@
                   </div>
                   </div>
                  </div>
+                 </div>
+                 <el-button v-show="canScroll(i,n.showScrollBtn)" icon="el-icon-arrow-right" @click="next($event,i)" circle class="scroll-btn right" size="mini" type="primary"></el-button>
                 </div>
               </div>
 
@@ -368,7 +370,8 @@ export default {
       },
       imgConfig: ["jpeg", "PNG", "png", "JPG", "jpg", "bmp", "webp"],
       audioConfig: ["mp3", "wav"],
-      debounceTimer: null
+      fileScrollStateMap: {},
+      resizeTimer: null,
     };
   },
   computed: {
@@ -379,11 +382,21 @@ export default {
       handler(val, oldVal) {},
       immediate: true,
     },
+    'session_data.history':{
+      handler(){
+        this.$nextTick(() => {
+          this.updateAllFileScrollStates();
+        });
+      },
+      deep:true
+    }
   },
   mounted() {
     this.setupScrollListener();
     smoothscroll.polyfill();
     document.addEventListener('click', this.handleCitationClick);
+    window.addEventListener('resize', this.handleWindowResize);
+    this.updateAllFileScrollStates();
   },
   beforeDestroy() {
     if(this.handleCitationClick) {
@@ -394,12 +407,78 @@ export default {
       container.removeEventListener("scroll", this.handleScroll);
     }
     clearTimeout(this.scrollTimeout);
+
+    window.removeEventListener('resize', this.handleWindowResize);
+    if (this.resizeTimer) {
+      clearTimeout(this.resizeTimer);
+    }
+    
     // 移除图片错误事件监听器
     if (this.imageErrorHandler) {
       document.body.removeEventListener("error", this.imageErrorHandler, true);
     }
   },
   methods: {
+    updateAllFileScrollStates() {
+      this.session_data.history.forEach((item, index) => {
+        if (item.fileList && item.fileList.length > 0) {
+          this.$nextTick(() => {
+            this.checkFileScrollState(index);
+          });
+        }
+      });
+    },
+    checkFileScrollState(index) {
+      const refKey = `imgList-${index}`;
+      const containerArray = this.$refs[refKey];
+      if (containerArray && containerArray.length > 0) {
+        const container = containerArray[0];
+        const canScroll = container.scrollWidth > container.clientWidth;
+        if (this.session_data.history[index]) {
+          this.$set(this.session_data.history[index], 'showScrollBtn', canScroll);
+        }
+        this.$set(this.fileScrollStateMap, index, canScroll);
+      }
+    },
+    handleWindowResize() {
+      if (this.resizeTimer) {
+        clearTimeout(this.resizeTimer);
+      }
+      this.resizeTimer = setTimeout(() => {
+        this.updateAllFileScrollStates();
+      }, 200);
+    },
+    canScroll(i,showScrollBtn) {
+      if (showScrollBtn !== null && showScrollBtn !== undefined) {
+        return showScrollBtn;
+      }
+      // 否则从 fileScrollStateMap 中获取
+      return this.fileScrollStateMap[i] || false;
+    },
+    prev(e,i){
+      e.stopPropagation()
+      const refKey = `imgList-${i}`;
+      const containerArray = this.$refs[refKey];
+      if (containerArray && containerArray.length > 0) {
+        const container = containerArray[0];
+        container.scrollBy({
+          left: -200,
+          behavior: "smooth",
+        });
+      }
+    },
+    next(e,i){
+      e.stopPropagation()
+      const refKey = `imgList-${i}`;
+      const containerArray = this.$refs[refKey];
+      if (containerArray && containerArray.length > 0) {
+        const container = containerArray[0];
+        container.scrollBy({
+          left: 200,
+          behavior: "smooth",
+        });
+      }
+    },
     hasFiles(n){
        return n.fileList && n.fileList.length > 0;
     },
@@ -894,6 +973,7 @@ export default {
     background: none !important;
   }
   .answer-content {
+    width: 100%;
     img {
       width: 80% !important;
     }
@@ -957,6 +1037,7 @@ export default {
         flex-wrap: wrap;
         flex-direction: column;
         align-items: flex-end;
+        width: 100%;
         .answer-text {
           background: #7288fa;
           color: #fff;
@@ -971,11 +1052,33 @@ export default {
         }
         .echo-doc-box {
           margin-top: 10px;
-          width: auto;
+          width: 100%;
+          max-width: 100%;
           display: flex;
           gap:8px;
           justify-content: space-between;
           align-items: center;
+          position: relative;
+          .scroll-btn{
+            position:absolute;
+            top:50%;
+            transform: translateY(-15px);
+            &.left{
+                left:5px;
+            }
+            &.right{
+                right:5px;
+            }
+          }
+          .imgList{
+            width:100%;
+            gap: 10px;
+            overflow-x:hidden;
+            scroll-behavior: smooth;
+            display:flex;
+            flex-wrap: nowrap;
+            flex-direction: row-reverse;
+          }
           .docInfo-container{
             display: flex;
             align-items: center;
@@ -985,6 +1088,8 @@ export default {
             border-radius: 5px;
           }
           .docInfo-img-container{
+            flex-shrink: 0;  /* 防止图片被压缩 */
+            width: auto;  /* 或固定宽度 */
             p{
               text-align: center;
               color: #384bf7;

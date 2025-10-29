@@ -314,6 +314,7 @@
                     <span>{{ displayName(n) }}</span>
                   </div>
                   <div class="bt">
+                    <span class="el-icon-s-operation" v-if="n.type === 'action' && n.toolType && n.toolType === 'builtin'" @click="handleBuiltin(n)"></span>
                     <el-switch
                       v-model="n.enable"
                       class="bt-switch"
@@ -433,6 +434,8 @@
       ref="visualSet"
       @sendVisual="sendVisual"
     />
+    <!-- 内置工具详情 -->
+    <ToolDeatail ref="toolDeatail" />
     <!-- 元数据设置 -->
     <el-dialog
       :visible.sync="metaSetVisible"
@@ -488,6 +491,7 @@ import {
   switchCustomBuiltIn
 } from "@/api/agent";
 import ToolDiaglog from "./toolDialog";
+import ToolDeatail from "./toolDetail";
 import LinkDialog from "./linkDialog";
 import knowledgeSetDialog from "./knowledgeSetDialog";
 import { readWorkFlow } from "@/api/workflow";
@@ -507,6 +511,7 @@ export default {
     knowledgeSetDialog,
     knowledgeSelect,
     metaSet,
+    ToolDeatail
   },
   watch: {
     editForm: {
@@ -689,6 +694,9 @@ export default {
   },
   methods: {
     ...mapActions("app", ["setMaxPicNum","clearMaxPicNum"]),
+    handleBuiltin(n){
+      this.$refs.toolDeatail.showDiaglog(n)
+    },
     showVisualSet(){
       this.$refs.visualSet.showDialog(this.editForm.visionConfig);
     },
@@ -1076,7 +1084,7 @@ export default {
         //回显自定义插件
         this.workFlowInfos = data.workFlowInfos || [];
         this.mcpInfos = data.mcpInfos || [];
-        this.actionInfos = data.customInfos || [];
+        this.actionInfos = data.toolInfos || [];
         this.allTools = [
           ...this.workFlowInfos.map((item) => ({ ...item, type: "workflow" })),
           ...this.mcpInfos.map((item) => ({ ...item, type: "mcp" })),
@@ -1681,7 +1689,7 @@ export default {
         font-size: 16px;
       }
       .bt-switch {
-        margin-right: 10px;
+        margin: 0 10px 0 10px;
       }
     }
   }

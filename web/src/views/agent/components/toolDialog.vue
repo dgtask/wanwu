@@ -22,15 +22,17 @@
                     :key="item[type + 'Id'] || item.id"
                     class="toolContent_item"
                     >
-                        <el-collapse  @change="handleToolChange">
-                            <el-collapse-item  :name="item.toolId">
-                            <template slot="title">
-                                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <template v-if="type === 'workflow'">
+                                <div>
                                     <span>{{item.name}}</span>
-                                    <el-button type="text" @click.stop="openTool($event,item,type)" v-if="!item.checked">添加</el-button>
+                                </div>
+                                <div>
+                                    <el-button type="text" @click="openTool($event,item,type)" v-if="!item.checked">添加</el-button>
                                     <el-button type="text" v-else style="color:#ccc;">已添加</el-button>
                                 </div>
-                            </template>
+                        </template>
+                        <el-collapse  @change="handleToolChange" v-else class="tool_collapse">
+                            <el-collapse-item  :name="item.toolId" :title="item.toolName">
                                 <template v-if="item.children && item.children.length">
                                     <div v-for="tool in item.children">
                                         <div>
@@ -102,7 +104,8 @@ export default {
         this.getCustomList('')
     },
     methods:{
-        handleToolChange(toolId){
+        handleToolChange(id){
+            let toolId = id[0];
             if(this.activeValue === 'tool'){
                 const targetItem = this.customInfos.find(item => item.toolId === toolId)
                 if(targetItem) {
@@ -299,6 +302,18 @@ export default {
     .el-dialog__body{
         padding:10px 20px;
     }
+    .tool_collapse{
+        width:100% !important;
+        border:none !important;
+    }
+    .el-collapse-item__header{
+        border-bottom:none!important;
+        background:none!important;
+    }
+    .el-collapse-item__wrap{
+         border-bottom:none!important;
+    }
+   
 }
 .createTool{
     padding:10px;

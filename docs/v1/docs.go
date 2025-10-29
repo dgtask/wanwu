@@ -4473,6 +4473,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/knowledge/org": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "知识库组织列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge"
+                ],
+                "summary": "知识库组织列表",
+                "parameters": [
+                    {
+                        "description": "知识库组织列表请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeOrgSelectReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.KnowOrgInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/knowledge/select": {
             "post": {
                 "security": [
@@ -4940,6 +4991,264 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/response.KnowledgeTagListResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/user": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "知识库用户权限列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge"
+                ],
+                "summary": "知识库用户权限列表",
+                "parameters": [
+                    {
+                        "description": "知识库用户权限列表请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeUserSelectReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.KnowledgeUserPermissionResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/user/add": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "增加知识库用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge"
+                ],
+                "summary": "增加知识库用户",
+                "parameters": [
+                    {
+                        "description": "增加知识库用户请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeUserAddReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/user/admin/transfer": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "转让管理员权限",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge"
+                ],
+                "summary": "转让管理员权限",
+                "parameters": [
+                    {
+                        "description": "转让管理员权限请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeTransferUserAdminReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/user/delete": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "删除知识库用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge"
+                ],
+                "summary": "删除知识库用户",
+                "parameters": [
+                    {
+                        "description": "删除知识库用户请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeUserDeleteReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/user/edit": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "修改知识库用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge"
+                ],
+                "summary": "修改知识库用户",
+                "parameters": [
+                    {
+                        "description": "修改知识库用户请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeUserEditReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/user/no/permit": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "没有知识库用户列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge"
+                ],
+                "summary": "没有知识库用户列表",
+                "parameters": [
+                    {
+                        "description": "没有知识库用户列表请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeUserNoPermitSelectReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.KnowOrgUserInfoResp"
                                         }
                                     }
                                 }
@@ -11709,7 +12018,8 @@ const docTemplate = `{
         "request.DeleteDocReq": {
             "type": "object",
             "required": [
-                "docIdList"
+                "docIdList",
+                "knowledgeId"
             ],
             "properties": {
                 "docIdList": {
@@ -11717,6 +12027,9 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "knowledgeId": {
+                    "type": "string"
                 }
             }
         },
@@ -12298,7 +12611,8 @@ const docTemplate = `{
         "request.KnowledgeMetaValueListReq": {
             "type": "object",
             "required": [
-                "docIdList"
+                "docIdList",
+                "knowledgeId"
             ],
             "properties": {
                 "docIdList": {
@@ -12306,6 +12620,21 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "knowledgeId": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.KnowledgeOrgSelectReq": {
+            "type": "object",
+            "required": [
+                "knowledgeId"
+            ],
+            "properties": {
+                "knowledgeId": {
+                    "description": "知识库id",
+                    "type": "string"
                 }
             }
         },
@@ -12330,6 +12659,148 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tagName": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.KnowledgeTransferUserAdminReq": {
+            "type": "object",
+            "required": [
+                "knowledgeId",
+                "knowledgeUser"
+            ],
+            "properties": {
+                "knowledgeId": {
+                    "description": "知识库id",
+                    "type": "string"
+                },
+                "knowledgeUser": {
+                    "description": "知识库用户信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.KnowledgeUserInfo"
+                        }
+                    ]
+                },
+                "permissionId": {
+                    "description": "权限id编辑时传入",
+                    "type": "string"
+                }
+            }
+        },
+        "request.KnowledgeUserAddReq": {
+            "type": "object",
+            "required": [
+                "knowledgeId",
+                "knowledgeUserList"
+            ],
+            "properties": {
+                "knowledgeId": {
+                    "description": "知识库id",
+                    "type": "string"
+                },
+                "knowledgeUserList": {
+                    "description": "知识库用户信息",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.KnowledgeUserInfo"
+                    }
+                },
+                "permissionType": {
+                    "description": "权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限\u003e编辑权限\u003e查看权限",
+                    "type": "integer"
+                }
+            }
+        },
+        "request.KnowledgeUserDeleteReq": {
+            "type": "object",
+            "required": [
+                "knowledgeId",
+                "permissionId"
+            ],
+            "properties": {
+                "knowledgeId": {
+                    "description": "知识库id",
+                    "type": "string"
+                },
+                "permissionId": {
+                    "description": "知识库用户信息权限信息",
+                    "type": "string"
+                }
+            }
+        },
+        "request.KnowledgeUserEditReq": {
+            "type": "object",
+            "required": [
+                "knowledgeId",
+                "knowledgeUserList"
+            ],
+            "properties": {
+                "knowledgeId": {
+                    "description": "知识库id",
+                    "type": "string"
+                },
+                "knowledgeUserList": {
+                    "description": "知识库用户信息",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.KnowledgeUserInfo"
+                    }
+                }
+            }
+        },
+        "request.KnowledgeUserInfo": {
+            "type": "object",
+            "required": [
+                "orgId",
+                "userId"
+            ],
+            "properties": {
+                "orgId": {
+                    "type": "string"
+                },
+                "permissionId": {
+                    "description": "权限id编辑时传入",
+                    "type": "string"
+                },
+                "permissionType": {
+                    "description": "权限类型: -1 删除此用户权限；0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限\u003e编辑权限\u003e查看权限",
+                    "type": "integer"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.KnowledgeUserNoPermitSelectReq": {
+            "type": "object",
+            "required": [
+                "knowledgeId",
+                "orgId"
+            ],
+            "properties": {
+                "knowledgeId": {
+                    "description": "知识库id",
+                    "type": "string"
+                },
+                "orgId": {
+                    "description": "选择组织id",
+                    "type": "string"
+                },
+                "transfer": {
+                    "description": "是否是转让列表",
+                    "type": "boolean"
+                }
+            }
+        },
+        "request.KnowledgeUserSelectReq": {
+            "type": "object",
+            "required": [
+                "knowledgeId"
+            ],
+            "properties": {
+                "knowledgeId": {
+                    "description": "知识库id",
                     "type": "string"
                 }
             }
@@ -13300,7 +13771,8 @@ const docTemplate = `{
         "request.UpdateMetaValueReq": {
             "type": "object",
             "required": [
-                "docIdList"
+                "docIdList",
+                "knowledgeId"
             ],
             "properties": {
                 "applyToSelected": {
@@ -13311,6 +13783,9 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "knowledgeId": {
+                    "type": "string"
                 },
                 "metaValueList": {
                     "type": "array",
@@ -14827,6 +15302,45 @@ const docTemplate = `{
                 }
             }
         },
+        "response.KnowOrgInfo": {
+            "type": "object",
+            "properties": {
+                "orgId": {
+                    "type": "string"
+                },
+                "orgName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.KnowOrgUserInfoResp": {
+            "type": "object",
+            "properties": {
+                "orgId": {
+                    "type": "string"
+                },
+                "orgName": {
+                    "type": "string"
+                },
+                "userInfoList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.KnowUserInfo"
+                    }
+                }
+            }
+        },
+        "response.KnowUserInfo": {
+            "type": "object",
+            "properties": {
+                "userId": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
         "response.KnowledgeHitResp": {
             "type": "object",
             "properties": {
@@ -14855,6 +15369,9 @@ const docTemplate = `{
             "properties": {
                 "createAt": {
                     "description": "创建时间",
+                    "type": "string"
+                },
+                "createUserId": {
                     "type": "string"
                 },
                 "description": {
@@ -14887,6 +15404,18 @@ const docTemplate = `{
                 "name": {
                     "description": "知识库名称",
                     "type": "string"
+                },
+                "orgName": {
+                    "description": "知识库所属名称",
+                    "type": "string"
+                },
+                "permissionType": {
+                    "description": "权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限\u003e编辑权限\u003e查看权限",
+                    "type": "integer"
+                },
+                "share": {
+                    "description": "是分享，还是私有",
+                    "type": "boolean"
                 }
             }
         },
@@ -15007,6 +15536,41 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.KnowledgeTag"
+                    }
+                }
+            }
+        },
+        "response.KnowledgeUserInfo": {
+            "type": "object",
+            "properties": {
+                "orgId": {
+                    "type": "string"
+                },
+                "orgName": {
+                    "type": "string"
+                },
+                "permissionId": {
+                    "type": "string"
+                },
+                "permissionType": {
+                    "description": "权限类型: -1 删除此用户权限；0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限\u003e编辑权限\u003e查看权限",
+                    "type": "integer"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.KnowledgeUserPermissionResp": {
+            "type": "object",
+            "properties": {
+                "knowledgeUserInfoList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.KnowledgeUserInfo"
                     }
                 }
             }
@@ -16548,7 +17112,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/v1",
 	Schemes:          []string{},
 	Title:            "AI Agent Productivity Platform API",
-	Description:      "## HTTP Header\n| Header        | 说明      |\n| ------------- | --------- |\n| Authorization | JWT token |\n| X-Language    | 语言Code  |\n| X-Org-Id      | 组织ID    |\n| X-Client-Id   | 客户端标识|\n\n## HTTP Status\n| HTTP Status             | 说明                   |\n| ----------------------- | ---------------------- |\n| 200, StatusOK           | 请求返回成功           |\n| 400, StatusBadRequest   | 请求返回失败，用于业务 |\n| 401, StatusUnauthorized | JWT认证失败            |\n| 403, StatusForbidden    | 没有权限               |\n\n## 权限-菜单对应表\n| 一级权限        | 二级权限  | 三级权限 | 一级菜单 | 二级菜单 | 三级菜单 |\n|-------------|-------|------|------|------|------|\n| guest       |       |      | 【访客】 |      |      |\n| common      |       |      | 【通用】 |      |      |\n| permission  |       |      | 权限管理 |      |      |\n| permission  | user  |      | 权限管理 | 用户管理 |      |\n| permission  | org   |      | 权限管理 | 组织管理 |      |\n| permission  | role  |      | 权限管理 | 角色管理 |      |\n\n## `/v1/user/permission`返回用例\n```json\n{\n  \"code\": 0,\n  \"data\": {\n    \"orgPermission\": {\n      \"org\": {\"id\": \"test-org-id\", \"name\": \"test-org-name\"},\n      \"permissions\": [\n        {\"perm\": \"permission\"},\n        {\"perm\": \"permission.user\"},\n        {\"perm\": \"permission.org\"},\n        {\"perm\": \"permission.role\"}\n      ]\n    }\n  },\n  \"msg\": \"操作成功\"\n}\n```",
+	Description:      "## HTTP Header\r\n| Header        | 说明      |\r\n| ------------- | --------- |\r\n| Authorization | JWT token |\r\n| X-Language    | 语言Code  |\r\n| X-Org-Id      | 组织ID    |\r\n| X-Client-Id   | 客户端标识|\r\n\r\n## HTTP Status\r\n| HTTP Status             | 说明                   |\r\n| ----------------------- | ---------------------- |\r\n| 200, StatusOK           | 请求返回成功           |\r\n| 400, StatusBadRequest   | 请求返回失败，用于业务 |\r\n| 401, StatusUnauthorized | JWT认证失败            |\r\n| 403, StatusForbidden    | 没有权限               |\r\n\r\n## 权限-菜单对应表\r\n| 一级权限        | 二级权限  | 三级权限 | 一级菜单 | 二级菜单 | 三级菜单 |\r\n|-------------|-------|------|------|------|------|\r\n| guest       |       |      | 【访客】 |      |      |\r\n| common      |       |      | 【通用】 |      |      |\r\n| permission  |       |      | 权限管理 |      |      |\r\n| permission  | user  |      | 权限管理 | 用户管理 |      |\r\n| permission  | org   |      | 权限管理 | 组织管理 |      |\r\n| permission  | role  |      | 权限管理 | 角色管理 |      |\r\n\r\n## `/v1/user/permission`返回用例\r\n```json\r\n{\r\n  \"code\": 0,\r\n  \"data\": {\r\n    \"orgPermission\": {\r\n      \"org\": {\"id\": \"test-org-id\", \"name\": \"test-org-name\"},\r\n      \"permissions\": [\r\n        {\"perm\": \"permission\"},\r\n        {\"perm\": \"permission.user\"},\r\n        {\"perm\": \"permission.org\"},\r\n        {\"perm\": \"permission.role\"}\r\n      ]\r\n    }\r\n  },\r\n  \"msg\": \"操作成功\"\r\n}\r\n```",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

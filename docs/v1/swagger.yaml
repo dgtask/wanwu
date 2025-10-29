@@ -1649,8 +1649,11 @@ definitions:
         items:
           type: string
         type: array
+      knowledgeId:
+        type: string
     required:
     - docIdList
+    - knowledgeId
     type: object
   request.DeleteDocSegmentReq:
     properties:
@@ -2052,8 +2055,19 @@ definitions:
         items:
           type: string
         type: array
+      knowledgeId:
+        type: string
     required:
     - docIdList
+    - knowledgeId
+    type: object
+  request.KnowledgeOrgSelectReq:
+    properties:
+      knowledgeId:
+        description: 知识库id
+        type: string
+    required:
+    - knowledgeId
     type: object
   request.KnowledgeSelectReq:
     properties:
@@ -2070,6 +2084,105 @@ definitions:
         type: string
       tagName:
         type: string
+    type: object
+  request.KnowledgeTransferUserAdminReq:
+    properties:
+      knowledgeId:
+        description: 知识库id
+        type: string
+      knowledgeUser:
+        allOf:
+        - $ref: '#/definitions/request.KnowledgeUserInfo'
+        description: 知识库用户信息
+      permissionId:
+        description: 权限id编辑时传入
+        type: string
+    required:
+    - knowledgeId
+    - knowledgeUser
+    type: object
+  request.KnowledgeUserAddReq:
+    properties:
+      knowledgeId:
+        description: 知识库id
+        type: string
+      knowledgeUserList:
+        description: 知识库用户信息
+        items:
+          $ref: '#/definitions/request.KnowledgeUserInfo'
+        type: array
+      permissionType:
+        description: '权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限'
+        type: integer
+    required:
+    - knowledgeId
+    - knowledgeUserList
+    type: object
+  request.KnowledgeUserDeleteReq:
+    properties:
+      knowledgeId:
+        description: 知识库id
+        type: string
+      permissionId:
+        description: 知识库用户信息权限信息
+        type: string
+    required:
+    - knowledgeId
+    - permissionId
+    type: object
+  request.KnowledgeUserEditReq:
+    properties:
+      knowledgeId:
+        description: 知识库id
+        type: string
+      knowledgeUserList:
+        description: 知识库用户信息
+        items:
+          $ref: '#/definitions/request.KnowledgeUserInfo'
+        type: array
+    required:
+    - knowledgeId
+    - knowledgeUserList
+    type: object
+  request.KnowledgeUserInfo:
+    properties:
+      orgId:
+        type: string
+      permissionId:
+        description: 权限id编辑时传入
+        type: string
+      permissionType:
+        description: '权限类型: -1 删除此用户权限；0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑
+          授权权限>编辑权限>查看权限'
+        type: integer
+      userId:
+        type: string
+    required:
+    - orgId
+    - userId
+    type: object
+  request.KnowledgeUserNoPermitSelectReq:
+    properties:
+      knowledgeId:
+        description: 知识库id
+        type: string
+      orgId:
+        description: 选择组织id
+        type: string
+      transfer:
+        description: 是否是转让列表
+        type: boolean
+    required:
+    - knowledgeId
+    - orgId
+    type: object
+  request.KnowledgeUserSelectReq:
+    properties:
+      knowledgeId:
+        description: 知识库id
+        type: string
+    required:
+    - knowledgeId
     type: object
   request.ListKeywordsReq:
     properties:
@@ -2738,12 +2851,15 @@ definitions:
         items:
           type: string
         type: array
+      knowledgeId:
+        type: string
       metaValueList:
         items:
           $ref: '#/definitions/request.DocMetaData'
         type: array
     required:
     - docIdList
+    - knowledgeId
     type: object
   request.UpdateSensitiveWordTableReplyReq:
     properties:
@@ -3760,6 +3876,31 @@ definitions:
       updatedAt:
         type: string
     type: object
+  response.KnowOrgInfo:
+    properties:
+      orgId:
+        type: string
+      orgName:
+        type: string
+    type: object
+  response.KnowOrgUserInfoResp:
+    properties:
+      orgId:
+        type: string
+      orgName:
+        type: string
+      userInfoList:
+        items:
+          $ref: '#/definitions/response.KnowUserInfo'
+        type: array
+    type: object
+  response.KnowUserInfo:
+    properties:
+      userId:
+        type: string
+      userName:
+        type: string
+    type: object
   response.KnowledgeHitResp:
     properties:
       prompt:
@@ -3780,6 +3921,8 @@ definitions:
     properties:
       createAt:
         description: 创建时间
+        type: string
+      createUserId:
         type: string
       description:
         description: 知识库描述
@@ -3802,6 +3945,15 @@ definitions:
       name:
         description: 知识库名称
         type: string
+      orgName:
+        description: 知识库所属名称
+        type: string
+      permissionType:
+        description: '权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限'
+        type: integer
+      share:
+        description: 是分享，还是私有
+        type: boolean
     type: object
   response.KnowledgeListResp:
     properties:
@@ -3882,6 +4034,30 @@ definitions:
       knowledgeTagList:
         items:
           $ref: '#/definitions/response.KnowledgeTag'
+        type: array
+    type: object
+  response.KnowledgeUserInfo:
+    properties:
+      orgId:
+        type: string
+      orgName:
+        type: string
+      permissionId:
+        type: string
+      permissionType:
+        description: '权限类型: -1 删除此用户权限；0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑
+          授权权限>编辑权限>查看权限'
+        type: integer
+      userId:
+        type: string
+      userName:
+        type: string
+    type: object
+  response.KnowledgeUserPermissionResp:
+    properties:
+      knowledgeUserInfoList:
+        items:
+          $ref: '#/definitions/response.KnowledgeUserInfo'
         type: array
     type: object
   response.Language:
@@ -4891,51 +5067,24 @@ definitions:
     type: object
 info:
   contact: {}
-  description: |-
-    ## HTTP Header
-    | Header        | 说明      |
-    | ------------- | --------- |
-    | Authorization | JWT token |
-    | X-Language    | 语言Code  |
-    | X-Org-Id      | 组织ID    |
-    | X-Client-Id   | 客户端标识|
-
-    ## HTTP Status
-    | HTTP Status             | 说明                   |
-    | ----------------------- | ---------------------- |
-    | 200, StatusOK           | 请求返回成功           |
-    | 400, StatusBadRequest   | 请求返回失败，用于业务 |
-    | 401, StatusUnauthorized | JWT认证失败            |
-    | 403, StatusForbidden    | 没有权限               |
-
-    ## 权限-菜单对应表
-    | 一级权限        | 二级权限  | 三级权限 | 一级菜单 | 二级菜单 | 三级菜单 |
-    |-------------|-------|------|------|------|------|
-    | guest       |       |      | 【访客】 |      |      |
-    | common      |       |      | 【通用】 |      |      |
-    | permission  |       |      | 权限管理 |      |      |
-    | permission  | user  |      | 权限管理 | 用户管理 |      |
-    | permission  | org   |      | 权限管理 | 组织管理 |      |
-    | permission  | role  |      | 权限管理 | 角色管理 |      |
-
-    ## `/v1/user/permission`返回用例
-    ```json
-    {
-      "code": 0,
-      "data": {
-        "orgPermission": {
-          "org": {"id": "test-org-id", "name": "test-org-name"},
-          "permissions": [
-            {"perm": "permission"},
-            {"perm": "permission.user"},
-            {"perm": "permission.org"},
-            {"perm": "permission.role"}
-          ]
-        }
-      },
-      "msg": "操作成功"
-    }
-    ```
+  description: "## HTTP Header\r\n| Header        | 说明      |\r\n| ------------- |
+    --------- |\r\n| Authorization | JWT token |\r\n| X-Language    | 语言Code  |\r\n|
+    X-Org-Id      | 组织ID    |\r\n| X-Client-Id   | 客户端标识|\r\n\r\n## HTTP Status\r\n|
+    HTTP Status             | 说明                   |\r\n| -----------------------
+    | ---------------------- |\r\n| 200, StatusOK           | 请求返回成功           |\r\n|
+    400, StatusBadRequest   | 请求返回失败，用于业务 |\r\n| 401, StatusUnauthorized | JWT认证失败
+    \           |\r\n| 403, StatusForbidden    | 没有权限               |\r\n\r\n## 权限-菜单对应表\r\n|
+    一级权限        | 二级权限  | 三级权限 | 一级菜单 | 二级菜单 | 三级菜单 |\r\n|-------------|-------|------|------|------|------|\r\n|
+    guest       |       |      | 【访客】 |      |      |\r\n| common      |       |      |
+    【通用】 |      |      |\r\n| permission  |       |      | 权限管理 |      |      |\r\n|
+    permission  | user  |      | 权限管理 | 用户管理 |      |\r\n| permission  | org   |      |
+    权限管理 | 组织管理 |      |\r\n| permission  | role  |      | 权限管理 | 角色管理 |      |\r\n\r\n##
+    `/v1/user/permission`返回用例\r\n```json\r\n{\r\n  \"code\": 0,\r\n  \"data\": {\r\n
+    \   \"orgPermission\": {\r\n      \"org\": {\"id\": \"test-org-id\", \"name\":
+    \"test-org-name\"},\r\n      \"permissions\": [\r\n        {\"perm\": \"permission\"},\r\n
+    \       {\"perm\": \"permission.user\"},\r\n        {\"perm\": \"permission.org\"},\r\n
+    \       {\"perm\": \"permission.role\"}\r\n      ]\r\n    }\r\n  },\r\n  \"msg\":
+    \"操作成功\"\r\n}\r\n```"
   title: AI Agent Productivity Platform API
   version: v0.0.1
 paths:
@@ -7583,6 +7732,35 @@ paths:
       summary: 更新知识库元数据值
       tags:
       - knowledge
+  /knowledge/org:
+    get:
+      consumes:
+      - application/json
+      description: 知识库组织列表
+      parameters:
+      - description: 知识库组织列表请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.KnowledgeOrgSelectReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.KnowOrgInfo'
+              type: object
+      security:
+      - JWT: []
+      summary: 知识库组织列表
+      tags:
+      - knowledge
   /knowledge/select:
     post:
       consumes:
@@ -7865,6 +8043,160 @@ paths:
       summary: 查询标签绑定知识库数量
       tags:
       - knowledge.tag
+  /knowledge/user:
+    get:
+      consumes:
+      - application/json
+      description: 知识库用户权限列表
+      parameters:
+      - description: 知识库用户权限列表请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.KnowledgeUserSelectReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.KnowledgeUserPermissionResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 知识库用户权限列表
+      tags:
+      - knowledge
+  /knowledge/user/add:
+    post:
+      consumes:
+      - application/json
+      description: 增加知识库用户
+      parameters:
+      - description: 增加知识库用户请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.KnowledgeUserAddReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 增加知识库用户
+      tags:
+      - knowledge
+  /knowledge/user/admin/transfer:
+    post:
+      consumes:
+      - application/json
+      description: 转让管理员权限
+      parameters:
+      - description: 转让管理员权限请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.KnowledgeTransferUserAdminReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 转让管理员权限
+      tags:
+      - knowledge
+  /knowledge/user/delete:
+    delete:
+      consumes:
+      - application/json
+      description: 删除知识库用户
+      parameters:
+      - description: 删除知识库用户请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.KnowledgeUserDeleteReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 删除知识库用户
+      tags:
+      - knowledge
+  /knowledge/user/edit:
+    post:
+      consumes:
+      - application/json
+      description: 修改知识库用户
+      parameters:
+      - description: 修改知识库用户请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.KnowledgeUserEditReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 修改知识库用户
+      tags:
+      - knowledge
+  /knowledge/user/no/permit:
+    get:
+      consumes:
+      - application/json
+      description: 没有知识库用户列表
+      parameters:
+      - description: 没有知识库用户列表请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.KnowledgeUserNoPermitSelectReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.KnowOrgUserInfoResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 没有知识库用户列表
+      tags:
+      - knowledge
   /mcp:
     delete:
       consumes:

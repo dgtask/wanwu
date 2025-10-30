@@ -44,6 +44,14 @@ func Operation2ProtocolTool(operation *openapi3.Operation) *protocol.Tool {
 			Properties: make(map[string]*protocol.Property),
 		},
 	}
+	// 处理description，保证非空
+	if ret.Description == "" {
+		if operation.Summary != "" {
+			ret.Description = operation.Summary
+		} else {
+			ret.Description = operation.OperationID
+		}
+	}
 	// 解析路径参数、查询参数、header 参数等
 	if operation.Parameters != nil {
 		properties, requireds := Parameters2ProtocolProperties(operation.Parameters)

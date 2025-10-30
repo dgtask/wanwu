@@ -3101,7 +3101,7 @@ definitions:
       mcpInfos:
         description: MCP信息
         items:
-          $ref: '#/definitions/response.MCPInfos'
+          $ref: '#/definitions/response.AssistantMCPInfo'
         type: array
       modelConfig:
         allOf:
@@ -3136,7 +3136,7 @@ definitions:
       toolInfos:
         description: 自定义工具、内置工具
         items:
-          $ref: '#/definitions/response.ToolInfos'
+          $ref: '#/definitions/response.AssistantToolInfo'
         type: array
       updatedAt:
         description: 更新时间
@@ -3148,7 +3148,7 @@ definitions:
       workFlowInfos:
         description: 工作流信息
         items:
-          $ref: '#/definitions/response.WorkFlowInfos'
+          $ref: '#/definitions/response.AssistantWorkFlowInfo'
         type: array
     required:
     - assistantId
@@ -3158,6 +3158,28 @@ definitions:
     properties:
       assistantId:
         type: string
+    type: object
+  response.AssistantMCPInfo:
+    properties:
+      actionName:
+        type: string
+      enable:
+        type: boolean
+      mcpId:
+        type: string
+      mcpName:
+        type: string
+      mcpType:
+        enum:
+        - mcp
+        - mcpserver
+        type: string
+      uniqueId:
+        type: string
+      valid:
+        type: boolean
+    required:
+    - mcpType
     type: object
   response.AssistantTemplateInfo:
     properties:
@@ -3205,6 +3227,43 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  response.AssistantToolInfo:
+    properties:
+      actionName:
+        type: string
+      enable:
+        type: boolean
+      toolId:
+        type: string
+      toolName:
+        type: string
+      toolType:
+        enum:
+        - builtin
+        - custom
+        type: string
+      uniqueId:
+        type: string
+      valid:
+        type: boolean
+    required:
+    - toolType
+    type: object
+  response.AssistantWorkFlowInfo:
+    properties:
+      apiName:
+        type: string
+      enable:
+        type: boolean
+      name:
+        type: string
+      uniqueId:
+        type: string
+      workFlowDesc:
+        type: string
+      workFlowId:
+        type: string
     type: object
   response.Captcha:
     properties:
@@ -3903,6 +3962,9 @@ definitions:
       permissionType:
         description: '权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限'
         type: integer
+      ragName:
+        description: rag名称
+        type: string
       share:
         description: 是分享，还是私有
         type: boolean
@@ -4227,28 +4289,6 @@ definitions:
         description: SSE URL
         type: string
     type: object
-  response.MCPInfos:
-    properties:
-      actionName:
-        type: string
-      enable:
-        type: boolean
-      mcpId:
-        type: string
-      mcpName:
-        type: string
-      mcpType:
-        enum:
-        - mcp
-        - mcpserver
-        type: string
-      uniqueId:
-        type: string
-      valid:
-        type: boolean
-    required:
-    - mcpType
-    type: object
   response.MCPSelect:
     properties:
       description:
@@ -4288,6 +4328,12 @@ definitions:
         type: string
     required:
     - toolType
+    type: object
+  response.MCPServerCreateResp:
+    properties:
+      mcpServerId:
+        description: mcpServerId
+        type: string
     type: object
   response.MCPServerCustomToolApi:
     properties:
@@ -4828,28 +4874,6 @@ definitions:
         items: {}
         type: array
     type: object
-  response.ToolInfos:
-    properties:
-      actionName:
-        type: string
-      enable:
-        type: boolean
-      toolId:
-        type: string
-      toolName:
-        type: string
-      toolType:
-        enum:
-        - builtin
-        - custom
-        type: string
-      uniqueId:
-        type: string
-      valid:
-        type: boolean
-    required:
-    - toolType
-    type: object
   response.ToolSelect:
     properties:
       apiKey:
@@ -5073,21 +5097,6 @@ definitions:
       picNum:
         description: 视觉配置图片数量
         type: integer
-    type: object
-  response.WorkFlowInfos:
-    properties:
-      apiName:
-        type: string
-      enable:
-        type: boolean
-      name:
-        type: string
-      uniqueId:
-        type: string
-      workFlowDesc:
-        type: string
-      workFlowId:
-        type: string
     type: object
   response.WorkflowStatistic:
     properties:
@@ -5859,7 +5868,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: 查看智能体详情
+      description: 查看发布后智能体详情
       parameters:
       - description: 智能体id
         in: query
@@ -5880,7 +5889,7 @@ paths:
               type: object
       security:
       - JWT: []
-      summary: 查看智能体详情
+      summary: 查看发布后智能体详情
       tags:
       - agent
     post:
@@ -6127,6 +6136,34 @@ paths:
       security:
       - JWT: []
       summary: 复制智能体
+      tags:
+      - agent
+  /assistant/draft:
+    get:
+      consumes:
+      - application/json
+      description: 查看草稿智能体详情
+      parameters:
+      - description: 智能体id
+        in: query
+        name: assistantId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.Assistant'
+              type: object
+      security:
+      - JWT: []
+      summary: 查看草稿智能体详情
       tags:
       - agent
   /assistant/stream:
@@ -8650,7 +8687,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.Response'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.MCPServerCreateResp'
+              type: object
       summary: 创建MCP Server
       tags:
       - tool

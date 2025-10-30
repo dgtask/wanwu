@@ -1114,7 +1114,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "查看智能体详情",
+                "description": "查看发布后智能体详情",
                 "consumes": [
                     "application/json"
                 ],
@@ -1124,7 +1124,7 @@ const docTemplate = `{
                 "tags": [
                     "agent"
                 ],
-                "summary": "查看智能体详情",
+                "summary": "查看发布后智能体详情",
                 "parameters": [
                     {
                         "type": "string",
@@ -1567,6 +1567,55 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/response.AssistantCreateResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/assistant/draft": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "查看草稿智能体详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "查看草稿智能体详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "智能体id",
+                        "name": "assistantId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.Assistant"
                                         }
                                     }
                                 }
@@ -5803,7 +5852,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.Response"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.MCPServerCreateResp"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -14428,7 +14489,7 @@ const docTemplate = `{
                     "description": "MCP信息",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.MCPInfos"
+                        "$ref": "#/definitions/response.AssistantMCPInfo"
                     }
                 },
                 "modelConfig": {
@@ -14486,7 +14547,7 @@ const docTemplate = `{
                     "description": "自定义工具、内置工具",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.ToolInfos"
+                        "$ref": "#/definitions/response.AssistantToolInfo"
                     }
                 },
                 "updatedAt": {
@@ -14505,7 +14566,7 @@ const docTemplate = `{
                     "description": "工作流信息",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.WorkFlowInfos"
+                        "$ref": "#/definitions/response.AssistantWorkFlowInfo"
                     }
                 }
             }
@@ -14515,6 +14576,39 @@ const docTemplate = `{
             "properties": {
                 "assistantId": {
                     "type": "string"
+                }
+            }
+        },
+        "response.AssistantMCPInfo": {
+            "type": "object",
+            "required": [
+                "mcpType"
+            ],
+            "properties": {
+                "actionName": {
+                    "type": "string"
+                },
+                "enable": {
+                    "type": "boolean"
+                },
+                "mcpId": {
+                    "type": "string"
+                },
+                "mcpName": {
+                    "type": "string"
+                },
+                "mcpType": {
+                    "type": "string",
+                    "enum": [
+                        "mcp",
+                        "mcpserver"
+                    ]
+                },
+                "uniqueId": {
+                    "type": "string"
+                },
+                "valid": {
+                    "type": "boolean"
                 }
             }
         },
@@ -14581,6 +14675,62 @@ const docTemplate = `{
                 },
                 "workFlowInstruction": {
                     "description": "工作流配置说明",
+                    "type": "string"
+                }
+            }
+        },
+        "response.AssistantToolInfo": {
+            "type": "object",
+            "required": [
+                "toolType"
+            ],
+            "properties": {
+                "actionName": {
+                    "type": "string"
+                },
+                "enable": {
+                    "type": "boolean"
+                },
+                "toolId": {
+                    "type": "string"
+                },
+                "toolName": {
+                    "type": "string"
+                },
+                "toolType": {
+                    "type": "string",
+                    "enum": [
+                        "builtin",
+                        "custom"
+                    ]
+                },
+                "uniqueId": {
+                    "type": "string"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "response.AssistantWorkFlowInfo": {
+            "type": "object",
+            "properties": {
+                "apiName": {
+                    "type": "string"
+                },
+                "enable": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "uniqueId": {
+                    "type": "string"
+                },
+                "workFlowDesc": {
+                    "type": "string"
+                },
+                "workFlowId": {
                     "type": "string"
                 }
             }
@@ -15645,6 +15795,10 @@ const docTemplate = `{
                     "description": "权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限\u003e编辑权限\u003e查看权限",
                     "type": "integer"
                 },
+                "ragName": {
+                    "description": "rag名称",
+                    "type": "string"
+                },
                 "share": {
                     "description": "是分享，还是私有",
                     "type": "boolean"
@@ -16141,39 +16295,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.MCPInfos": {
-            "type": "object",
-            "required": [
-                "mcpType"
-            ],
-            "properties": {
-                "actionName": {
-                    "type": "string"
-                },
-                "enable": {
-                    "type": "boolean"
-                },
-                "mcpId": {
-                    "type": "string"
-                },
-                "mcpName": {
-                    "type": "string"
-                },
-                "mcpType": {
-                    "type": "string",
-                    "enum": [
-                        "mcp",
-                        "mcpserver"
-                    ]
-                },
-                "uniqueId": {
-                    "type": "string"
-                },
-                "valid": {
-                    "type": "boolean"
-                }
-            }
-        },
         "response.MCPSelect": {
             "type": "object",
             "required": [
@@ -16225,6 +16346,15 @@ const docTemplate = `{
                 },
                 "uniqueId": {
                     "description": "随机unique id(每次动态生成)",
+                    "type": "string"
+                }
+            }
+        },
+        "response.MCPServerCreateResp": {
+            "type": "object",
+            "properties": {
+                "mcpServerId": {
+                    "description": "mcpServerId",
                     "type": "string"
                 }
             }
@@ -17034,39 +17164,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.ToolInfos": {
-            "type": "object",
-            "required": [
-                "toolType"
-            ],
-            "properties": {
-                "actionName": {
-                    "type": "string"
-                },
-                "enable": {
-                    "type": "boolean"
-                },
-                "toolId": {
-                    "type": "string"
-                },
-                "toolName": {
-                    "type": "string"
-                },
-                "toolType": {
-                    "type": "string",
-                    "enum": [
-                        "builtin",
-                        "custom"
-                    ]
-                },
-                "uniqueId": {
-                    "type": "string"
-                },
-                "valid": {
-                    "type": "boolean"
-                }
-            }
-        },
         "response.ToolSelect": {
             "type": "object",
             "required": [
@@ -17404,29 +17501,6 @@ const docTemplate = `{
                 "picNum": {
                     "description": "视觉配置图片数量",
                     "type": "integer"
-                }
-            }
-        },
-        "response.WorkFlowInfos": {
-            "type": "object",
-            "properties": {
-                "apiName": {
-                    "type": "string"
-                },
-                "enable": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "uniqueId": {
-                    "type": "string"
-                },
-                "workFlowDesc": {
-                    "type": "string"
-                },
-                "workFlowId": {
-                    "type": "string"
                 }
             }
         },

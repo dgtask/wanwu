@@ -173,12 +173,12 @@ export default {
     },
     handleEdit(row) {
       row.editing = true
-      row.originalType = row.type // 保存原始值
+      row.originalType = row.permissionType // 保存原始值
     },
     handleSave(row) {
       // 保存编辑
       row.editing = false
-      row.originalType = row.type
+      row.originalType = row.permissionType
       const knowledgeUser = {
           orgId:row.orgId,
           userId:row.userId,
@@ -193,7 +193,7 @@ export default {
       }).catch(() => {})
     },
     handleCancel(row) {
-      row.type = row.originalType
+      row.permissionType = row.originalType
       row.editing = false
     },
     handleTransfer(row) {

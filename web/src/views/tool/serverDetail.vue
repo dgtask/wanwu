@@ -2,7 +2,7 @@
   <div class="mcp-detail" id="timeScroll">
     <span class="back" @click="back">{{ $t('menu.back') + $t('menu.tool') }}</span>
     <div class="mcp-title">
-      <img class="logo" v-if="detail.avatar && detail.avatar.path" :src="avatarSrc(detail.avatar.path)" alt=""/>
+      <img class="logo" :src="detail.avatar.path ? avatarSrc(detail.avatar.path) : defaultAvatar" alt=""/>
       <div :class="['info',{fold:foldStatus}]">
         <p class="name">{{ detail.name }}</p>
         <p v-if="detail.desc && detail.desc.length > 260" class="desc">
@@ -227,6 +227,7 @@ export default {
     return {
       tabActive: 0,
       basePath: this.$basePath,
+      defaultAvatar: require("@/assets/imgs/mcp_active.svg"),
       mcpServerId: '',
       detail: {},
       apiKeyList: [],

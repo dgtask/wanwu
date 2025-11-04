@@ -632,6 +632,7 @@ func buildDocInfo(item *model.KnowledgeDoc, segmentConfigMap map[string]*model.S
 		Status:        int32(util.BuildDocRespStatus(item.Status)),
 		ErrorMsg:      item.ErrorMsg,
 		SegmentMethod: buildSegmentMethod(item, segmentConfigMap),
+		UserId:        item.UserId,
 	}
 }
 

@@ -327,7 +327,6 @@ func calculateResizeParameters(originalWidth, originalHeight, maxSize int) (int,
 	return newWidth, newHeight
 }
 
-//nolint:unused
 func convertStatisticChart(pbChart *common.StatisticChart) response.StatisticChart {
 	if pbChart == nil {
 		return response.StatisticChart{}

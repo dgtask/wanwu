@@ -15,75 +15,44 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetCumulativeClientStatistic(ctx *gin.Context, endAt string) (*response.ClientCumulative, error) {
-	resp, err := operate.GetCumulativeClient(ctx, &operate_service.GetCumulativeClientReq{
-		EndAt: util.MustI64(endAt),
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &response.ClientCumulative{Total: resp.Total}, nil
-}
-
 func GetClientStatistic(ctx *gin.Context, startDate, endDate string) (*response.ClientStatistic, error) {
 	// 客户端
-	overview, err := getClientStatisticOverview(ctx, startDate, endDate)
+	statistic, err := getClientStatistic(ctx, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}
-	trend, err := getClientStatisticTrend(ctx, startDate, endDate)
-	if err != nil {
-		return nil, err
-	}
-
 	// 浏览量
 	browseOverview, browseTrend, err := getGlobalBrowseStatistic(ctx, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}
-	overview.Browse = *browseOverview
-	trend.Browse = *browseTrend
+	statistic.Overview.Browse = *browseOverview
+	statistic.Trend.Browse = *browseTrend
 
 	return &response.ClientStatistic{
-		Overview: *overview,
-		Trend:    *trend,
+		Overview: statistic.Overview,
+		Trend:    statistic.Trend,
 	}, nil
 }
 
-func getClientStatisticOverview(ctx *gin.Context, startDate, endDate string) (*response.ClientOverView, error) {
-	resp, err := operate.GetClientOverview(ctx, &operate_service.GetClientOverviewReq{
+func getClientStatistic(ctx *gin.Context, startDate, endDate string) (*response.ClientStatistic, error) {
+	resp, err := operate.GetClientStatistic(ctx, &operate_service.GetClientStatisticReq{
 		StartDate: startDate,
 		EndDate:   endDate,
 	})
 	if err != nil {
 		return nil, err
 	}
-
-	return &response.ClientOverView{
-		NewClient:    clientOverviewPb2resp(resp.NewClient),
-		ActiveClient: clientOverviewPb2resp(resp.ActiveClient),
+	return &response.ClientStatistic{
+		Overview: response.ClientOverView{
+			CumulativeClient: clientOverviewPb2resp(resp.Overview.GetCumulative()),
+			ActiveClient:     clientOverviewPb2resp(resp.Overview.GetActive()),
+			AdditionClient:   clientOverviewPb2resp(resp.Overview.GetNew()),
+		},
+		Trend: response.ClientTrend{
+			Client: convertStatisticChart(resp.Trend.Client),
+		},
 	}, nil
-}
-
-func getClientStatisticTrend(ctx *gin.Context, startDate, endDate string) (*response.ClientTrend, error) {
-	// resp, err := operate.GetClientTrend(ctx, &operate_service.GetClientTrendReq{
-	// 	StartDate: startDate,
-	// 	EndDate:   endDate,
-	// })
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// return &response.ClientTrends{
-	// 	Client: convertStatisticChart(resp.Client),
-	// }, nil
-
-	//i18n替换表名
-	// trend.Client.TableName = gin_util.I18nKey(ctx, trend.Client.TableName)
-	// for i, line := range trend.Client.Lines {
-	// 	trend.Client.Lines[i].LineName = gin_util.I18nKey(ctx, line.LineName)
-	// }
-
-	return &response.ClientTrend{}, nil
 }
 
 func clientOverviewPb2resp(item *operate_service.ClientOverviewItem) response.StatisticOverviewItem {

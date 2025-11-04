@@ -34,7 +34,7 @@
 
               <div class="content_title">
                 <el-button size="mini" type="primary" icon="el-icon-refresh" @click="reload" >{{$t('common.gpuDialog.reload')}}</el-button>
-                <el-button size="mini" type="primary" @click="showBatchMeta" v-if="[10,20,30].includes(permissionType)">批量编辑元数据值</el-button>
+                <!--<el-button size="mini" type="primary" @click="showBatchMeta" v-if="[10,20,30].includes(permissionType)">批量编辑元数据值</el-button> -->
                 <el-button size="mini" type="primary" @click="showMeta" v-if="[10,20,30].includes(permissionType)">元数据管理</el-button>
                 <el-button size="mini" type="primary" @click="$router.push(`/knowledge/hitTest?knowledgeId=${docQuery.knowledgeId}&name=${knowledgeName}`)">命中测试</el-button>
                 <el-button
@@ -68,6 +68,7 @@
                 <el-table-column
                   type="selection"
                   reserve-selection
+                  v-if="[10,20,30].includes(permissionType)"
                   width="55">
                 </el-table-column>
                 <el-table-column
@@ -182,7 +183,7 @@
     <!-- 批量编辑元数据值弹窗 -->
     <batchMetaData ref="batchMetaData" :selectedDocIds="selectedDocIds" @reLoadDocList="reLoadDocList" />
     <!-- 批量编辑元数据值操作框 -->
-    <BatchMetatButton ref="BatchMetatButton" :selectedCount="selectedTableData.length"/>
+    <BatchMetatButton ref="BatchMetatButton" :selectedCount="selectedTableData.length" @showBatchMeta="showBatchMeta"/>
   </div>
 </template>
 

@@ -15,7 +15,7 @@
       </div>
       <div class="toolbar-divider"></div>
       <div class="toolbar-item" @click="handleCancel">
-        <span class="item-text">{{ $t('metaData.cancel') }}</span>
+        <span class="item-text">{{ $t('common.confirm.cancel') }}</span>
       </div>
     </div>
   </div>
@@ -30,14 +30,9 @@ export default {
       default: 0
     }
   },
-  watch:{
-    selectedCount(val){
-        console.log(val)
-    }
-  },
   methods: {
     handleMetadata() {
-      this.$emit('metadata');
+      this.$emit('showBatchMeta');
     },
     handleCancel() {
       this.$emit('cancel');

@@ -9,7 +9,8 @@ type ListDocResp struct {
 	Status        int    `json:"status"`        //处理状态
 	ErrorMsg      string `json:"errorMsg"`      //解析错误信息，预留
 	FileSize      string `json:"fileSize"`      //文件大小，预留
-	SegmentMethod string `json:"segmentMethod"` //分段模式0:通用分段，1：父子分段
+	SegmentMethod string `json:"segmentMethod"` //分段模式 0:通用分段，1：父子分段
+	Author        string `json:"author"`        // 上传文档 作者
 }
 
 type DocImportTipResp struct {

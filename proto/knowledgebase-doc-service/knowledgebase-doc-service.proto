@@ -205,6 +205,7 @@ message DocInfo{
   int32 status = 7;
   string errorMsg = 8;
   string segmentMethod = 9;//分段方式 0：通用分段，1：父子分段
+  string userId = 10;
 }
 
 message DocSegmentListReq{

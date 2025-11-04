@@ -1,6 +1,7 @@
 package service
 
 import (
+	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
 	"path/filepath"
 	"strings"
 
@@ -218,7 +219,8 @@ func AnalysisDocUrl(ctx *gin.Context, userId, orgId string, r *request.AnalysisU
 
 // buildDocRespList 构造文档返回列表
 func buildDocRespList(ctx *gin.Context, dataList []*knowledgebase_doc_service.DocInfo, knowledgeId string) []*response.ListDocResp {
-	var retList []*response.ListDocResp
+	retList := make([]*response.ListDocResp, 0)
+	authorMap := buildAuthorMap(ctx, dataList)
 	for _, data := range dataList {
 		retList = append(retList, &response.ListDocResp{
 			DocId:         data.DocId,
@@ -230,9 +232,41 @@ func buildDocRespList(ctx *gin.Context, dataList []*knowledgebase_doc_service.Do
 			FileSize:      util.ToFileSizeStr(data.DocSize),
 			KnowledgeId:   knowledgeId,
 			SegmentMethod: data.SegmentMethod,
+			Author:        authorMap[data.UserId],
 		})
 	}
 	return retList
+}
+
+func buildAuthorMap(ctx *gin.Context, dataList []*knowledgebase_doc_service.DocInfo) map[string]string {
+	authorMap := make(map[string]string)
+	userIdSet := make(map[string]bool)
+	for _, data := range dataList {
+		if data.UserId != "" {
+			userIdSet[data.UserId] = true
+			authorMap[data.UserId] = ""
+		}
+	}
+	if len(userIdSet) == 0 {
+		return authorMap
+	}
+	userIdList := make([]string, len(userIdSet))
+	for userId := range userIdSet {
+		userIdList = append(userIdList, userId)
+	}
+	userInfoList, err := iam.GetUserSelectByUserIDs(ctx, &iam_service.GetUserSelectByUserIDsReq{
+		UserIds: userIdList,
+	})
+	if err != nil {
+		log.Errorf("knowledge gets user info error: %v", err)
+		return authorMap
+	}
+	for _, userInfo := range userInfoList.Selects {
+		if userInfo.Id != "" {
+			authorMap[userInfo.Id] = userInfo.Name
+		}
+	}
+	return authorMap
 }
 
 // buildDocSegmentResp 构造doc分片返回信息

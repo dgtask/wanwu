@@ -77,7 +77,7 @@
       </div>
     </div>
     <div class="agent_form">
-      <!-- 智能体信息 -->
+      <!-- 系统提示词 -->
       <div class="block prompt-box drawer-info">
             <h3 class="labelTitle">系统提示词</h3>
             <div class="rl" style="padding: 10px;">
@@ -91,6 +91,7 @@
                 :rows="5"
               ></el-input>
             </div>
+            <promptTemplate ref="promptTemplate" />
       </div>
       <!-- 智能体配置 -->
       <div class="drawer-form">
@@ -1276,6 +1277,7 @@ export default {
   gap: 10px;
   height: calc(100% - 60px);
   .drawer-info {
+    position:relative;
     width: 30%;
     margin: 10px 0;
     border-radius: 6px;

@@ -25,6 +25,14 @@
         ref="cardsContainer"
         @scroll="handleScroll"
       >
+        <!-- 左侧滚动按钮（初始隐藏，滚到最右显示） -->
+        <div 
+          class="scroll-button left" 
+          v-if="showLeftButton"
+          @click="scrollLeft"
+        >
+          <i class="el-icon-arrow-left"></i>
+        </div>
         <div 
           v-for="(card, index) in currentCards" 
           :key="index"
@@ -34,15 +42,15 @@
           <div class="card-title">{{ card.title }}</div>
           <div class="card-description">{{ card.description }}</div>
         </div>
-      </div>
-      
-      <!-- 右侧滚动按钮 -->
-      <div 
-        class="scroll-button right" 
-        v-if="showScrollButton"
-        @click="scrollRight"
-      >
-        <i class="el-icon-arrow-right"></i>
+        
+        <!-- 右侧滚动按钮（置于滚动容器内部） -->
+        <div 
+          class="scroll-button right" 
+          v-if="showRightButton"
+          @click="scrollRight"
+        >
+          <i class="el-icon-arrow-right"></i>
+        </div>
       </div>
     </div>
   </div>
@@ -54,7 +62,8 @@ export default {
   data() {
     return {
       activeTab: 'recommended',
-      showScrollButton: true,
+      showLeftButton: false,
+      showRightButton: true,
       recommendedCards: [
         {
           title: '通用结构',
@@ -98,6 +107,16 @@ export default {
       // 触发卡片点击事件，可以传递给父组件
       this.$emit('card-click', card);
     },
+    scrollLeft() {
+      const container = this.$refs.cardsContainer;
+      if (container) {
+        const scrollAmount = 300; // 每次滚动300px
+        container.scrollBy({
+          left: -scrollAmount,
+          behavior: 'smooth'
+        });
+      }
+    },
     scrollRight() {
       const container = this.$refs.cardsContainer;
       if (container) {
@@ -115,10 +134,37 @@ export default {
       this.$nextTick(() => {
         const container = this.$refs.cardsContainer;
         if (container) {
-          // 检查是否还有内容可以向右滚动
           const canScroll = container.scrollWidth > container.clientWidth;
-          const isAtEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - 10;
-          this.showScrollButton = canScroll && !isAtEnd;
+          const scrollLeft = container.scrollLeft;
+          const scrollWidth = container.scrollWidth;
+          const clientWidth = container.clientWidth;
+          
+          // 判断是否在开始位置（允许10px的误差）
+          const isAtStart = scrollLeft <= 10;
+          // 判断是否在结束位置（允许10px的误差）
+          const isAtEnd = scrollLeft + clientWidth >= scrollWidth - 10;
+          
+          // 如果无法滚动，都不显示按钮
+          if (!canScroll) {
+            this.showLeftButton = false;
+            this.showRightButton = false;
+          } else {
+            // 在开始位置，只显示右侧按钮
+            if (isAtStart) {
+              this.showLeftButton = false;
+              this.showRightButton = true;
+            } 
+            // 在结束位置，只显示左侧按钮
+            else if (isAtEnd) {
+              this.showLeftButton = true;
+              this.showRightButton = false;
+            } 
+            // 在中间位置，两个按钮都显示
+            else {
+              this.showLeftButton = true;
+              this.showRightButton = true;
+            }
+          }
         }
       });
     }
@@ -135,9 +181,10 @@ export default {
 
 <style lang="scss" scoped>
 .prompt-template-container {
-  padding: 20px;
-  background: #fff;
-  height: 100%;
+  position:absolute;
+  bottom:0;
+  left:0;
+  padding: 10px;
   display: flex;
   flex-direction: column;
 }
@@ -182,6 +229,8 @@ export default {
   overflow-y: hidden;
   padding: 10px 0;
   scroll-behavior: smooth;
+  position: relative;
+  align-items: stretch;
   
   // 隐藏滚动条
   &::-webkit-scrollbar {
@@ -193,7 +242,7 @@ export default {
 
 .prompt-card {
   flex-shrink: 0;
-  width: 280px;
+  width: 200px;
   background: #fff;
   border-radius: 8px;
   padding: 20px;
@@ -229,12 +278,14 @@ export default {
 }
 
 .scroll-button {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  position: sticky;
+  top: auto;
+  align-self: center;
+  flex-shrink: 0;
   width: 32px;
   height: 32px;
+  min-width: 32px;
+  min-height: 32px;
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -242,9 +293,19 @@ export default {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
+  z-index: 5;
   transition: all 0.3s;
   border: 1px solid #e4e7ed;
+  
+  &.left {
+    left: 0;
+    margin-right: 8px;
+  }
+  
+  &.right {
+    right: 0;
+    margin-left: 8px;
+  }
   
   &:hover {
     background: #f5f7fa;
@@ -255,6 +316,7 @@ export default {
     font-size: 14px;
     color: #606266;
     font-weight: bold;
+    line-height: 1;
   }
   
   &:hover i {

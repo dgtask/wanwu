@@ -1913,6 +1913,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/assistant/tool/config": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "配置智能体工具，包括自定义工具和内置工具",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "配置智能体工具",
+                "parameters": [
+                    {
+                        "description": "智能体工具配置参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AssistantToolConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/assistant/tool/mcp": {
             "post": {
                 "security": [
@@ -7269,6 +7308,426 @@ const docTemplate = `{
                 }
             }
         },
+        "/prompt/custom": {
+            "get": {
+                "description": "获取自定义Prompt详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tool"
+                ],
+                "summary": "获取自定义Prompt详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "customPromptId",
+                        "name": "customPromptId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.CustomPrompt"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "更新自定义Prompt",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tool"
+                ],
+                "summary": "更新自定义Prompt",
+                "parameters": [
+                    {
+                        "description": "自定义Prompt信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateCustomPrompt"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建自定义Prompt",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tool"
+                ],
+                "summary": "创建自定义Prompt",
+                "parameters": [
+                    {
+                        "description": "自定义Prompt信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CustomPromptCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.CustomPromptIDResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除自定义Prompt",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tool"
+                ],
+                "summary": "删除自定义Prompt",
+                "parameters": [
+                    {
+                        "description": "自定义PromptID",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CustomPromptIDReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/prompt/custom/copy": {
+            "post": {
+                "description": "复制自定义Prompt",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tool"
+                ],
+                "summary": "复制自定义Prompt",
+                "parameters": [
+                    {
+                        "description": "自定义PromptID",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CustomPromptIDReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.CustomPromptIDResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/prompt/custom/list": {
+            "get": {
+                "description": "获取自定义Prompt列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tool"
+                ],
+                "summary": "获取自定义Prompt列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.CustomPrompt"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/prompt/template": {
+            "post": {
+                "description": "复制提示词模板",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tool"
+                ],
+                "summary": "复制提示词模板",
+                "parameters": [
+                    {
+                        "description": "通过模板创建提示词的请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreatePromptByTemplateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PromptIDData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/prompt/template/detail": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取提示词模板详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "guest"
+                ],
+                "summary": "获取提示词模板详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "模板ID",
+                        "name": "templateId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PromptTemplateDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/prompt/template/list": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取提示词模板列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "guest"
+                ],
+                "summary": "获取提示词模板列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "模板名称",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "模板分类",
+                        "name": "category",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.PromptTemplateDetail"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/proxy/file/upload": {
             "post": {
                 "security": [
@@ -11369,14 +11828,6 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "onlineSearchConfig": {
-                    "description": "在线搜索",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/request.OnlineSearchConfig"
-                        }
-                    ]
-                },
                 "prologue": {
                     "description": "开场白",
                     "type": "string"
@@ -11544,6 +11995,25 @@ const docTemplate = `{
                         "builtin",
                         "custom"
                     ]
+                }
+            }
+        },
+        "request.AssistantToolConfigRequest": {
+            "type": "object",
+            "required": [
+                "assistantId",
+                "toolConfig",
+                "toolId"
+            ],
+            "properties": {
+                "assistantId": {
+                    "type": "string"
+                },
+                "toolConfig": {
+                    "$ref": "#/definitions/request.ToolConfig"
+                },
+                "toolId": {
+                    "type": "string"
                 }
             }
         },
@@ -12030,6 +12500,34 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CreatePromptByTemplateReq": {
+            "type": "object",
+            "required": [
+                "name",
+                "templateId"
+            ],
+            "properties": {
+                "avatar": {
+                    "description": "图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "desc": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.CreateSensitiveWordTableReq": {
             "type": "object",
             "required": [
@@ -12120,6 +12618,48 @@ const docTemplate = `{
                 },
                 "loginWelcomeText": {
                     "description": "登录页欢迎语",
+                    "type": "string"
+                }
+            }
+        },
+        "request.CustomPromptCreate": {
+            "type": "object",
+            "required": [
+                "desc",
+                "name",
+                "prompt"
+            ],
+            "properties": {
+                "avatar": {
+                    "description": "图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "desc": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "prompt": {
+                    "description": "提示词",
+                    "type": "string"
+                }
+            }
+        },
+        "request.CustomPromptIDReq": {
+            "type": "object",
+            "required": [
+                "customPromptId"
+            ],
+            "properties": {
+                "customPromptId": {
+                    "description": "自定义提示词ID",
                     "type": "string"
                 }
             }
@@ -13363,23 +13903,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.OnlineSearchConfig": {
-            "type": "object",
-            "properties": {
-                "enable": {
-                    "type": "boolean"
-                },
-                "searchKey": {
-                    "type": "string"
-                },
-                "searchRerankId": {
-                    "type": "string"
-                },
-                "searchUrl": {
-                    "type": "string"
-                }
-            }
-        },
         "request.OrgCreate": {
             "type": "object",
             "required": [
@@ -13727,6 +14250,14 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ToolConfig": {
+            "type": "object",
+            "properties": {
+                "rerankId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.ToolSquareAPIKeyReq": {
             "type": "object",
             "required": [
@@ -13752,6 +14283,41 @@ const docTemplate = `{
                 },
                 "appType": {
                     "description": "应用类型",
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateCustomPrompt": {
+            "type": "object",
+            "required": [
+                "customPromptId",
+                "desc",
+                "name",
+                "prompt"
+            ],
+            "properties": {
+                "avatar": {
+                    "description": "图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "customPromptId": {
+                    "description": "自定义提示词ID",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "prompt": {
+                    "description": "提示词",
                     "type": "string"
                 }
             }
@@ -14384,14 +14950,6 @@ const docTemplate = `{
                     "description": "名称",
                     "type": "string"
                 },
-                "onlineSearchConfig": {
-                    "description": "在线搜索配置",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/request.OnlineSearchConfig"
-                        }
-                    ]
-                },
                 "prologue": {
                     "description": "开场白",
                     "type": "string"
@@ -14570,6 +15128,9 @@ const docTemplate = `{
                 },
                 "enable": {
                     "type": "boolean"
+                },
+                "toolConfig": {
+                    "$ref": "#/definitions/response.ToolConfig"
                 },
                 "toolId": {
                     "type": "string"
@@ -15035,6 +15596,9 @@ const docTemplate = `{
                 "agentIcon": {
                     "type": "string"
                 },
+                "promptIcon": {
+                    "type": "string"
+                },
                 "ragIcon": {
                     "type": "string"
                 },
@@ -15115,6 +15679,48 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.CustomEmail"
                         }
                     ]
+                }
+            }
+        },
+        "response.CustomPrompt": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "customPromptId": {
+                    "description": "自定义提示词ID",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "prompt": {
+                    "description": "提示词",
+                    "type": "string"
+                },
+                "updateAt": {
+                    "description": "更新时间",
+                    "type": "string"
+                }
+            }
+        },
+        "response.CustomPromptIDResp": {
+            "type": "object",
+            "properties": {
+                "customPromptId": {
+                    "description": "自定义提示词ID",
+                    "type": "string"
                 }
             }
         },
@@ -15886,6 +16492,10 @@ const docTemplate = `{
         "response.ListDocResp": {
             "type": "object",
             "properties": {
+                "author": {
+                    "description": "上传文档 作者",
+                    "type": "string"
+                },
                 "docId": {
                     "type": "string"
                 },
@@ -15910,7 +16520,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "segmentMethod": {
-                    "description": "分段模式0:通用分段，1：父子分段",
+                    "description": "分段模式 0:通用分段，1：父子分段",
                     "type": "string"
                 },
                 "status": {
@@ -16680,6 +17290,54 @@ const docTemplate = `{
                 }
             }
         },
+        "response.PromptIDData": {
+            "type": "object",
+            "properties": {
+                "promptId": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.PromptTemplateDetail": {
+            "type": "object",
+            "required": [
+                "name",
+                "templateId"
+            ],
+            "properties": {
+                "author": {
+                    "description": "作者",
+                    "type": "string"
+                },
+                "avatar": {
+                    "description": "图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "category": {
+                    "description": "模板分类",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "prompt": {
+                    "description": "提示词",
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
+                }
+            }
+        },
         "response.ProxyUploadFileResp": {
             "type": "object",
             "properties": {
@@ -17043,6 +17701,14 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/protocol.Tool"
                     }
+                }
+            }
+        },
+        "response.ToolConfig": {
+            "type": "object",
+            "properties": {
+                "rerankId": {
+                    "type": "string"
                 }
             }
         },

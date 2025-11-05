@@ -1047,10 +1047,6 @@ definitions:
         allOf:
         - $ref: '#/definitions/request.AppModelConfig'
         description: 模型
-      onlineSearchConfig:
-        allOf:
-        - $ref: '#/definitions/request.OnlineSearchConfig'
-        description: 在线搜索
       prologue:
         description: 开场白
         type: string
@@ -1165,6 +1161,19 @@ definitions:
     - assistantId
     - toolId
     - toolType
+    type: object
+  request.AssistantToolConfigRequest:
+    properties:
+      assistantId:
+        type: string
+      toolConfig:
+        $ref: '#/definitions/request.ToolConfig'
+      toolId:
+        type: string
+    required:
+    - assistantId
+    - toolConfig
+    - toolId
     type: object
   request.AssistantToolDelRequest:
     properties:
@@ -1497,6 +1506,24 @@ definitions:
     required:
     - tagName
     type: object
+  request.CreatePromptByTemplateReq:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      desc:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      templateId:
+        type: string
+    required:
+    - name
+    - templateId
+    type: object
   request.CreateSensitiveWordTableReq:
     properties:
       remark:
@@ -1555,6 +1582,34 @@ definitions:
       loginWelcomeText:
         description: 登录页欢迎语
         type: string
+    type: object
+  request.CustomPromptCreate:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      desc:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      prompt:
+        description: 提示词
+        type: string
+    required:
+    - desc
+    - name
+    - prompt
+    type: object
+  request.CustomPromptIDReq:
+    properties:
+      customPromptId:
+        description: 自定义提示词ID
+        type: string
+    required:
+    - customPromptId
     type: object
   request.CustomTabConfig:
     properties:
@@ -2413,17 +2468,6 @@ definitions:
     required:
     - modelId
     type: object
-  request.OnlineSearchConfig:
-    properties:
-      enable:
-        type: boolean
-      searchKey:
-        type: string
-      searchRerankId:
-        type: string
-      searchUrl:
-        type: string
-    type: object
   request.OrgCreate:
     properties:
       name:
@@ -2657,6 +2701,11 @@ definitions:
     required:
     - tableId
     type: object
+  request.ToolConfig:
+    properties:
+      rerankId:
+        type: string
+    type: object
   request.ToolSquareAPIKeyReq:
     properties:
       apiKey:
@@ -2676,6 +2725,30 @@ definitions:
       appType:
         description: 应用类型
         type: string
+    type: object
+  request.UpdateCustomPrompt:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      customPromptId:
+        description: 自定义提示词ID
+        type: string
+      desc:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      prompt:
+        description: 提示词
+        type: string
+    required:
+    - customPromptId
+    - desc
+    - name
+    - prompt
     type: object
   request.UpdateDocChildSegmentReq:
     properties:
@@ -3110,10 +3183,6 @@ definitions:
       name:
         description: 名称
         type: string
-      onlineSearchConfig:
-        allOf:
-        - $ref: '#/definitions/request.OnlineSearchConfig'
-        description: 在线搜索配置
       prologue:
         description: 开场白
         type: string
@@ -3234,6 +3303,8 @@ definitions:
         type: string
       enable:
         type: boolean
+      toolConfig:
+        $ref: '#/definitions/response.ToolConfig'
       toolId:
         type: string
       toolName:
@@ -3533,6 +3604,8 @@ definitions:
     properties:
       agentIcon:
         type: string
+      promptIcon:
+        type: string
       ragIcon:
         type: string
       workflowIcon:
@@ -3582,6 +3655,34 @@ definitions:
         allOf:
         - $ref: '#/definitions/response.CustomEmail'
         description: 登录邮箱
+    type: object
+  response.CustomPrompt:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      customPromptId:
+        description: 自定义提示词ID
+        type: string
+      desc:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      prompt:
+        description: 提示词
+        type: string
+      updateAt:
+        description: 更新时间
+        type: string
+    type: object
+  response.CustomPromptIDResp:
+    properties:
+      customPromptId:
+        description: 自定义提示词ID
+        type: string
     type: object
   response.CustomRegister:
     properties:
@@ -4100,6 +4201,9 @@ definitions:
     type: object
   response.ListDocResp:
     properties:
+      author:
+        description: 上传文档 作者
+        type: string
       docId:
         type: string
       docName:
@@ -4118,7 +4222,7 @@ definitions:
         description: 知识库id
         type: string
       segmentMethod:
-        description: 分段模式0:通用分段，1：父子分段
+        description: 分段模式 0:通用分段，1：父子分段
         type: string
       status:
         description: 处理状态
@@ -4630,6 +4734,38 @@ definitions:
         description: 权限
         type: string
     type: object
+  response.PromptIDData:
+    properties:
+      promptId:
+        type: string
+    type: object
+  response.PromptTemplateDetail:
+    properties:
+      author:
+        description: 作者
+        type: string
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      category:
+        description: 模板分类
+        type: string
+      desc:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      prompt:
+        description: 提示词
+        type: string
+      templateId:
+        type: string
+    required:
+    - name
+    - templateId
+    type: object
   response.ProxyUploadFileResp:
     properties:
       download_link:
@@ -4870,6 +5006,11 @@ definitions:
         items:
           $ref: '#/definitions/protocol.Tool'
         type: array
+    type: object
+  response.ToolConfig:
+    properties:
+      rerankId:
+        type: string
     type: object
   response.ToolDetail4Workflow:
     properties:
@@ -6339,6 +6480,30 @@ paths:
       security:
       - JWT: []
       summary: 添加自定义、内建工具
+      tags:
+      - agent
+  /assistant/tool/config:
+    put:
+      consumes:
+      - application/json
+      description: 配置智能体工具，包括自定义工具和内置工具
+      parameters:
+      - description: 智能体工具配置参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AssistantToolConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 配置智能体工具
       tags:
       - agent
   /assistant/tool/mcp:
@@ -9503,6 +9668,252 @@ paths:
       summary: 邀请用户加入组织
       tags:
       - permission.user
+  /prompt/custom:
+    delete:
+      consumes:
+      - application/json
+      description: 删除自定义Prompt
+      parameters:
+      - description: 自定义PromptID
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CustomPromptIDReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除自定义Prompt
+      tags:
+      - tool
+    get:
+      consumes:
+      - application/json
+      description: 获取自定义Prompt详情
+      parameters:
+      - description: customPromptId
+        in: query
+        name: customPromptId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.CustomPrompt'
+              type: object
+      summary: 获取自定义Prompt详情
+      tags:
+      - tool
+    post:
+      consumes:
+      - application/json
+      description: 创建自定义Prompt
+      parameters:
+      - description: 自定义Prompt信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CustomPromptCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.CustomPromptIDResp'
+              type: object
+      summary: 创建自定义Prompt
+      tags:
+      - tool
+    put:
+      consumes:
+      - application/json
+      description: 更新自定义Prompt
+      parameters:
+      - description: 自定义Prompt信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateCustomPrompt'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 更新自定义Prompt
+      tags:
+      - tool
+  /prompt/custom/copy:
+    post:
+      consumes:
+      - application/json
+      description: 复制自定义Prompt
+      parameters:
+      - description: 自定义PromptID
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CustomPromptIDReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.CustomPromptIDResp'
+              type: object
+      summary: 复制自定义Prompt
+      tags:
+      - tool
+  /prompt/custom/list:
+    get:
+      consumes:
+      - application/json
+      description: 获取自定义Prompt列表
+      parameters:
+      - description: name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.CustomPrompt'
+                        type: array
+                    type: object
+              type: object
+      summary: 获取自定义Prompt列表
+      tags:
+      - tool
+  /prompt/template:
+    post:
+      consumes:
+      - application/json
+      description: 复制提示词模板
+      parameters:
+      - description: 通过模板创建提示词的请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreatePromptByTemplateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PromptIDData'
+              type: object
+      summary: 复制提示词模板
+      tags:
+      - tool
+  /prompt/template/detail:
+    get:
+      consumes:
+      - application/json
+      description: 获取提示词模板详情
+      parameters:
+      - description: 模板ID
+        in: query
+        name: templateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PromptTemplateDetail'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取提示词模板详情
+      tags:
+      - guest
+  /prompt/template/list:
+    get:
+      consumes:
+      - application/json
+      description: 获取提示词模板列表
+      parameters:
+      - description: 模板名称
+        in: query
+        name: name
+        type: string
+      - description: 模板分类
+        in: query
+        name: category
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.PromptTemplateDetail'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取提示词模板列表
+      tags:
+      - guest
   /proxy/file/upload:
     post:
       consumes:

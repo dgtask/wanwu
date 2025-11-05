@@ -967,23 +967,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.OnlineSearchConfig": {
-            "type": "object",
-            "properties": {
-                "enable": {
-                    "type": "boolean"
-                },
-                "searchKey": {
-                    "type": "string"
-                },
-                "searchRerankId": {
-                    "type": "string"
-                },
-                "searchUrl": {
-                    "type": "string"
-                }
-            }
-        },
         "request.SensitiveTable": {
             "type": "object",
             "required": [
@@ -1176,14 +1159,6 @@ const docTemplate = `{
                     "description": "名称",
                     "type": "string"
                 },
-                "onlineSearchConfig": {
-                    "description": "在线搜索配置",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/request.OnlineSearchConfig"
-                        }
-                    ]
-                },
                 "prologue": {
                     "description": "开场白",
                     "type": "string"
@@ -1287,6 +1262,9 @@ const docTemplate = `{
                 },
                 "enable": {
                     "type": "boolean"
+                },
+                "toolConfig": {
+                    "$ref": "#/definitions/response.ToolConfig"
                 },
                 "toolId": {
                     "type": "string"
@@ -1436,6 +1414,14 @@ const docTemplate = `{
                 },
                 "data": {},
                 "msg": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ToolConfig": {
+            "type": "object",
+            "properties": {
+                "rerankId": {
                     "type": "string"
                 }
             }

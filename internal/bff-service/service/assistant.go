@@ -63,12 +63,6 @@ func AssistantConfigUpdate(ctx *gin.Context, userId, orgId string, req request.A
 		ModelConfig:         modelConfig,
 		KnowledgeBaseConfig: transKnowledgebases2Proto(req.KnowledgeBaseConfig),
 		RerankConfig:        rerankConfig,
-		OnlineSearchConfig: &assistant_service.AssistantOnlineSearchConfig{
-			SearchUrl:      req.OnlineSearchConfig.SearchUrl,
-			SearchKey:      req.OnlineSearchConfig.SearchKey,
-			Enable:         req.OnlineSearchConfig.Enable,
-			SearchRerankId: req.OnlineSearchConfig.SearchRerankId,
-		},
 		SafetyConfig: &assistant_service.AssistantSafetyConfig{
 			Enable:         req.SafetyConfig.Enable,
 			SensitiveTable: transSafetyConfig2Proto(req.SafetyConfig.Tables),
@@ -754,15 +748,6 @@ func transAssistantResp2Model(ctx *gin.Context, resp *assistant_service.Assistan
 		return nil, err
 	}
 
-	var onlineSearchConfig request.OnlineSearchConfig
-	if resp.OnlineSearchConfig != nil {
-		onlineSearchConfig = request.OnlineSearchConfig{
-			SearchUrl:      resp.OnlineSearchConfig.SearchUrl,
-			SearchKey:      resp.OnlineSearchConfig.SearchKey,
-			Enable:         resp.OnlineSearchConfig.Enable,
-			SearchRerankId: resp.OnlineSearchConfig.SearchRerankId,
-		}
-	}
 	var sensitiveWordTable *safety_service.SensitiveWordTables
 	if len(resp.SafetyConfig.GetSensitiveTable()) != 0 {
 		var tableIds []string
@@ -791,7 +776,6 @@ func transAssistantResp2Model(ctx *gin.Context, resp *assistant_service.Assistan
 		KnowledgeBaseConfig: knowledgeBaseConfig,
 		ModelConfig:         modelConfig,
 		RerankConfig:        rerankConfig,
-		OnlineSearchConfig:  onlineSearchConfig,
 		SafetyConfig:        request.AppSafetyConfig{Enable: resp.SafetyConfig.GetEnable()},
 		VisionConfig:        visionConfig,
 		Scope:               resp.Scope,

@@ -95,7 +95,6 @@ message AssistantConfigUpdateReq {
   common.AppModelConfig modelConfig = 5;                  // 模型配置
   AssistantKnowledgeBaseConfig knowledgeBaseConfig = 6;         // 知识库
   common.AppModelConfig rerankConfig = 7;                         // Rerank模型
-  AssistantOnlineSearchConfig onlineSearchConfig = 8;             // 在线搜索配置
   Identity identity = 9;
   AssistantSafetyConfig safetyConfig = 10;
   AssistantVisionConfig visionConfig = 11;
@@ -177,7 +176,6 @@ message AssistantInfo {
   common.AppModelConfig modelConfig = 7;                 // 模型配置
   AssistantKnowledgeBaseConfig knowledgeBaseConfig = 8;  // 知识库
   common.AppModelConfig rerankConfig = 9;                // Rerank模型
-  AssistantOnlineSearchConfig onlineSearchConfig = 10;   // 在线搜索配置
   int32 scope = 11;
   repeated AssistantWorkFlowInfos workFlowInfos = 12;
   repeated AssistantMCPInfos mcpInfos = 13;

@@ -18,7 +18,6 @@ type AssistantConfig struct {
 	KnowledgeBaseConfig AppKnowledgebaseConfig `json:"knowledgeBaseConfig"` // 知识库
 	SafetyConfig        AppSafetyConfig        `json:"safetyConfig"`        // 敏感词表配置
 	RerankConfig        AppModelConfig         `json:"rerankConfig"`        // Rerank模型
-	OnlineSearchConfig  OnlineSearchConfig     `json:"onlineSearchConfig"`  // 在线搜索
 	VisionConfig        VisionConfig           `json:"visionConfig"`        // 视觉配置
 }
 
@@ -142,20 +141,6 @@ type ConversionStreamFile struct {
 	FileName string `json:"fileName" form:"fileName"`
 	FileSize int64  `json:"fileSize" form:"fileSize"`
 	FileUrl  string `json:"fileUrl" form:"fileUrl"`
-}
-
-type OnlineSearchConfig struct {
-	SearchUrl      string `json:"searchUrl" form:"searchUrl"`
-	SearchKey      string `json:"searchKey" form:"searchKey"`
-	SearchRerankId string `json:"searchRerankId" form:"searchRerankId"`
-	Enable         bool   `json:"enable" form:"enable"`
-}
-
-func (o *OnlineSearchConfig) Check() error {
-	if (o.SearchUrl == "" && o.SearchKey != "") || (o.SearchUrl != "" && o.SearchKey == "") {
-		return fmt.Errorf("searchUrl and searchKey must be set together")
-	}
-	return nil
 }
 
 type AssistantTemplateRequest struct {

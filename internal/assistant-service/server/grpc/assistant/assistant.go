@@ -181,18 +181,6 @@ func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_serv
 		log.Debugf("knowConfig = %s", existingAssistant.KnowledgebaseConfig)
 	}
 
-	// 处理onlineSearchConfig，转换成json字符串之后再更新
-	if req.OnlineSearchConfig != nil {
-		onlineSearchConfigBytes, err := json.Marshal(req.OnlineSearchConfig)
-		if err != nil {
-			return nil, errStatus(errs.Code_AssistantErr, &errs.Status{
-				TextKey: "assistant_onlineSearchConfig_marshal",
-				Args:    []string{err.Error()},
-			})
-		}
-		existingAssistant.OnlineSearchConfig = string(onlineSearchConfigBytes)
-	}
-
 	// 处理safetyConfig，转换成json字符串之后再更新
 	if req.SafetyConfig != nil {
 		safetyConfigBytes, err := json.Marshal(req.SafetyConfig)
@@ -352,18 +340,6 @@ func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.G
 		}
 	}
 
-	// 处理assistant.OnlineSearchConfig，转换成AssistantOnlineSearchConfig
-	var onlineSearchConfig *assistant_service.AssistantOnlineSearchConfig
-	if assistant.OnlineSearchConfig != "" {
-		onlineSearchConfig = &assistant_service.AssistantOnlineSearchConfig{}
-		if err := json.Unmarshal([]byte(assistant.OnlineSearchConfig), onlineSearchConfig); err != nil {
-			return nil, errStatus(errs.Code_AssistantErr, &errs.Status{
-				TextKey: "assistant_onlineSearchConfig_unmarshal",
-				Args:    []string{err.Error()},
-			})
-		}
-	}
-
 	// 处理assistant.SafetyConfig，转换成AssistantSafetyConfig
 	var safetyConfig *assistant_service.AssistantSafetyConfig
 	if assistant.SafetyConfig != "" {
@@ -406,7 +382,6 @@ func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.G
 		ModelConfig:         modelConfig,
 		KnowledgeBaseConfig: knowledgeBaseConfig,
 		RerankConfig:        rerankConfig,
-		OnlineSearchConfig:  onlineSearchConfig,
 		SafetyConfig:        safetyConfig,
 		VisionConfig:        visionConfig,
 		Scope:               int32(assistant.Scope),

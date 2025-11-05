@@ -270,13 +270,6 @@ func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConv
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "plugin配置错误")
 	}
 
-	// 在线搜索参数配置
-	if err = s.setOnlineSearchParams(sseReq, assistant); err != nil {
-		SSEError(stream, "智能体在线搜索配置解析失败")
-		saveConversation(ctx, req, "智能体在线搜索配置解析失败", "")
-		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "在线搜索配置解析失败")
-	}
-
 	// MCP 信息参数配置
 	if err = s.setMCPParams(ctx, sseReq, assistant); err != nil {
 		SSEError(stream, "智能体MCP配置解析失败")
@@ -538,12 +531,12 @@ func (s *Service) setKnowledgebaseParams(ctx context.Context, sseReq *config.Age
 
 // 设置工具（自定义工具、内置工具与工作流）
 func (s *Service) setToolAndWorkflowParams(ctx context.Context, sseReq *config.AgentSSERequest, assistantId string, identity *assistant_service.Identity) error {
-	toolPluginList, err := buildToolPluginListAlgParam(ctx, s, assistantId, identity)
+	toolPluginList, err := s.buildToolPluginListAlgParam(ctx, sseReq, assistantId, identity)
 	if err != nil {
 		return fmt.Errorf("智能体tool配置错误: %w", err)
 	}
 
-	workflowPluginList, err := buildWorkflowPluginListAlgParam(ctx, s, assistantId)
+	workflowPluginList, err := s.buildWorkflowPluginListAlgParam(ctx, assistantId)
 	if err != nil {
 		return fmt.Errorf("智能体workflow配置错误: %w", err)
 	}
@@ -552,29 +545,6 @@ func (s *Service) setToolAndWorkflowParams(ctx context.Context, sseReq *config.A
 	allPlugin := append(toolPluginList, workflowPluginList...)
 	sseReq.PluginList = allPlugin
 	log.Debugf("智能体tool_plugin_list，assistantId: %s, tool_plugin_list: %s", assistantId, allPlugin)
-	return nil
-}
-
-// 设置在线搜索参数
-func (s *Service) setOnlineSearchParams(sseReq *config.AgentSSERequest, assistant *model.Assistant) error {
-	if assistant.OnlineSearchConfig == "" {
-		return nil
-	}
-
-	onlineSearchConfig := &AppOnlineSearchConfig{}
-	log.Debugf("Assistant服务解析智能体在线搜索配置，assistantId: %s, onlineSearchConfig: %+v", assistant.ID, assistant.OnlineSearchConfig)
-	if err := json.Unmarshal([]byte(assistant.OnlineSearchConfig), onlineSearchConfig); err != nil {
-		return fmt.Errorf("Assistant服务解析智能体在线搜索配置失败，assistantId: %d, error: %v, onlineSearchConfigRaw: %s", assistant.ID, err, assistant.OnlineSearchConfig)
-	}
-	log.Debugf("Assistant服务解析智能体在线搜索配置，assistantId: %s, onlineSearchConfig: %+v", assistant.ID, onlineSearchConfig)
-
-	if onlineSearchConfig.Enable && onlineSearchConfig.SearchUrl != "" && onlineSearchConfig.SearchKey != "" {
-		sseReq.SearchUrl = onlineSearchConfig.SearchUrl
-		sseReq.SearchKey = onlineSearchConfig.SearchKey
-		sseReq.SearchRerankId = onlineSearchConfig.SearchRerankId
-		sseReq.UseSearch = true
-		log.Debugf("Assistant服务添加在线搜索配置到请求参数，assistantId: %s, search_url: %s, search_key: %s, use_search: %v", assistant.ID, onlineSearchConfig.SearchUrl, onlineSearchConfig.SearchKey, onlineSearchConfig.Enable)
-	}
 	return nil
 }
 
@@ -796,13 +766,6 @@ type MetaFilterParams struct {
 	Value     string `json:"value"`
 }
 
-type AppOnlineSearchConfig struct {
-	SearchUrl      string `json:"searchUrl"`
-	SearchKey      string `json:"searchKey"`
-	SearchRerankId string `json:"SearchRerankId"`
-	Enable         bool   `json:"enable"`
-}
-
 func mergeMaps(map1, map2 map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
 	for k, v := range map1 {
@@ -814,7 +777,7 @@ func mergeMaps(map1, map2 map[string]interface{}) map[string]interface{} {
 	return result
 }
 
-func buildWorkflowPluginListAlgParam(ctx context.Context, s *Service, assistantId string) (pluginList []config.PluginListAlgRequest, err error) {
+func (s *Service) buildWorkflowPluginListAlgParam(ctx context.Context, assistantId string) (pluginList []config.PluginListAlgRequest, err error) {
 	workflows, status := s.cli.GetAssistantWorkflowsByAssistantID(ctx, pkgUtil.MustU32(assistantId))
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantConversationErr, status)
@@ -864,7 +827,7 @@ func buildWorkflowPluginListAlgParam(ctx context.Context, s *Service, assistantI
 	return pluginList, nil
 }
 
-func buildToolPluginListAlgParam(ctx context.Context, s *Service, assistantId string, identity *assistant_service.Identity) (pluginList []config.PluginListAlgRequest, err error) {
+func (s *Service) buildToolPluginListAlgParam(ctx context.Context, sseReq *config.AgentSSERequest, assistantId string, identity *assistant_service.Identity) (pluginList []config.PluginListAlgRequest, err error) {
 	// 转换assistantId
 	assistantIdConv := pkgUtil.MustU32(assistantId)
 	resp, status := s.cli.GetAssistantToolList(ctx, assistantIdConv)
@@ -899,6 +862,50 @@ func buildToolPluginListAlgParam(ctx context.Context, s *Service, assistantId st
 				apiAuth = convertToolApiAuth(customTool.ApiAuth)
 			}
 		case constant.ToolTypeBuiltIn:
+			// 如果是博查搜索，特殊处理，兼容旧的智能体接口传参格式
+			if tool.ToolId == "bochawebsearch" {
+				// 获取内置工具详情
+				builtinTool, err := MCP.GetSquareTool(ctx, &mcp_service.GetSquareToolReq{
+					ToolSquareId: tool.ToolId,
+					Identity: &mcp_service.Identity{
+						UserId: identity.UserId,
+						OrgId:  identity.OrgId,
+					},
+				})
+				if err != nil {
+					log.Infof("获取内置工具信息失败，assistantId: %s, toolId: %s, err: %v", assistantId, tool.ToolId, err)
+					continue
+				}
+				sseReq.SearchKey = builtinTool.BuiltInTools.ApiKey
+
+				// 计算SearchUrl: 解析schema获取第一个server url和唯一的path url
+				doc, err := openapi3_util.LoadFromData(ctx, []byte(builtinTool.Schema))
+				if err != nil {
+					log.Errorf("解析内置工具Schema失败，assistantId: %s, toolId: %s, err: %v", assistantId, tool.ToolId, err)
+				} else {
+					if len(doc.Servers) > 0 {
+						serverURL := doc.Servers[0].URL
+						for path := range doc.Paths.Map() {
+							sseReq.SearchUrl = serverURL + path
+							break
+						}
+					}
+				}
+				if tool.ToolConfig != "" {
+					var toolConfig map[string]interface{}
+					if err := json.Unmarshal([]byte(tool.ToolConfig), &toolConfig); err != nil {
+						log.Errorf("解析工具配置失败，assistantId: %s, toolId: %s, err: %v", assistantId, tool.ToolId, err)
+					} else {
+						if rerankId, ok := toolConfig["rerankId"]; ok {
+							sseReq.SearchRerankId = rerankId
+						}
+					}
+				} else {
+					log.Errorf("bocha内置工具配置为空，缺少rerankId。assistantId: %s, toolId: %s", assistantId, tool.ToolId)
+				}
+
+				continue
+			}
 			// 获取内置工具详情
 			builtinTool, err := MCP.GetSquareTool(ctx, &mcp_service.GetSquareToolReq{
 				ToolSquareId: tool.ToolId,

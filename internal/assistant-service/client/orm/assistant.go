@@ -39,7 +39,6 @@ func (c *Client) UpdateAssistant(ctx context.Context, assistant *model.Assistant
 			"knowledgebase_config": assistant.KnowledgebaseConfig,
 			"scope":                assistant.Scope,
 			"rerank_config":        assistant.RerankConfig,
-			"online_search_config": assistant.OnlineSearchConfig,
 			"safety_config":        assistant.SafetyConfig,
 			"vision_config":        assistant.VisionConfig,
 		}).Error; err != nil {

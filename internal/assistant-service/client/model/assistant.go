@@ -11,7 +11,6 @@ type Assistant struct {
 	ModelConfig         string `gorm:"column:model_config;type:longtext;comment:模型配置"`
 	RerankConfig        string `gorm:"column:rerank_config;type:longtext;comment:rerank模型配置"`
 	KnowledgebaseConfig string `gorm:"column:knowledgebase_config;type:longtext;comment:知识库配置"`
-	OnlineSearchConfig  string `gorm:"column:online_search_config;type:longtext;comment:在线搜索配置"`
 	SafetyConfig        string `gorm:"column:safety_config;type:longtext;comment:安全配置"`
 	VisionConfig        string `gorm:"column:vision_config;type:longtext;comment:视觉配置"`
 	Scope               int    `gorm:"column:scope;type:tinyint;comment:智能体可见范围"`

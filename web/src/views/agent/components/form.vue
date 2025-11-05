@@ -1765,7 +1765,9 @@ export default {
 .custom-tooltip.el-tooltip__popper.is-light[x-placement^="top"] .popper__arrow {
   border-top-color: #ccc !important;
 }
-
+.echo .session-item{
+  width:30vw!important;
+}
 .model-option-content {
   display: flex;
   justify-content: space-between;

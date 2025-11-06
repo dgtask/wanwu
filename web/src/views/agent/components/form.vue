@@ -286,7 +286,7 @@
                 >
                   <div class="name">
                   <div class="toolImg">
-                   <!-- <img :src="'/user/api/'+n.avatar.path"/> -->
+                    <img :src="'/user/api/'+n.avatar.path" v-show="n.avatar && n.avatar.path" />
                   </div>
                   <el-tooltip class="item" effect="dark" :content="displayName(n)" placement="top-start">
                     <span>{{ displayName(n).length > 20 ? displayName(n).substring(0, 20) + '...' : displayName(n) }}</span>
@@ -489,6 +489,11 @@ export default {
     ToolDeatail,
     promptTemplate
   },
+  provide() {
+    return {
+      getPrompt: this.getPrompt
+    }
+  },
   watch: {
     editForm: {
       handler(newVal, oldVal) {
@@ -663,6 +668,9 @@ export default {
   },
   methods: {
     ...mapActions("app", ["setMaxPicNum","clearMaxPicNum"]),
+    getPrompt(prompt){
+      this.editForm.instructions = prompt;
+    },
     handleBuiltin(n){
       this.$refs.toolDeatail.showDiaglog(n)
     },
@@ -1644,6 +1652,7 @@ export default {
         img{
           width:100%;
           height:100%;
+          border-radius:50%;
           object-fit: cover;
         }
       }
@@ -1735,7 +1744,7 @@ export default {
 .custom-tooltip.el-tooltip__popper.is-light[x-placement^="top"] .popper__arrow {
   border-top-color: #ccc !important;
 }
-.echo .session-item{
+.drawer-test .echo .session-item{
   width:30vw!important;
 }
 .model-option-content {

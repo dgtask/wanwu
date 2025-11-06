@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     :visible.sync="dialogVisible"
-    width="80%"
+    width="60%"
     :before-close="handleClose"
     class="prompt-dialog"
   >
@@ -14,7 +14,6 @@
         class="title-search-input"
         clearable
         @clear="handleSearchClear"
-        @keyup.enter.native="handleSearch"
       ></el-input>
     </div>
     <div class="prompt-library-content">
@@ -37,15 +36,15 @@
       <div class="library-main">
         <div class="template-list">
           <div
-            v-for="item in templateList"
-            :key="item.id"
+            v-for="item in filteredTemplateList"
+            :key="item.templateId || item.customPromptId"
             class="template-item"
-            :class="{ active: selectedTemplate && selectedTemplate.id === item.id }"
+            :class="{ active: isTemplateSelected(item) }"
             @click="selectTemplate(item)"
           >
             <div class="template-content">
               <div class="template-logo">
-                <i class="el-icon-document"></i>
+                <img :src="'/user/api' + item.avatar.path">
               </div>
               <div class="template-info">
                 <div class="template-name">{{ item.name }}</div>
@@ -59,7 +58,7 @@
         </div>
 
         <div class="template-detail" v-if="selectedTemplate">
-          <div class="detail-content markdown-body" v-html="formatTemplateContent(selectedTemplate.content)"></div>
+          <div class="detail-content markdown-body" v-html="formatTemplateContent(selectedTemplate.prompt)"></div>
         </div>
         <div class="template-detail empty" v-else>
           <div class="empty-text">{{ $t('agent.promptTemplate.selectTemplate')}}</div>
@@ -75,80 +74,63 @@ import { md } from "@/mixins/marksown-it.js";
 
 export default {
   name: 'PromptDialog',
+  inject: ['getPrompt'],
   data() {
     return {
       dialogVisible: false,
       searchKeyword: '',
       activeTab: 'builtIn',
       selectedTemplate: null,
-      templateList: [
-        {
-          id: 1,
-          name: '通用结构',
-          desc: '适用于多种场景的提示词结构，可以根据具体需求调整不同的部分',
-          content: `# 角色：角色名称\n角色概述和主要职责的一句话描述\n\n## 目标：\n角色的工作目标，如果有多个目标可以分点列出，但建议更聚焦1-2个目标\n\n## 技能：\n1. 为了实现目标，角色需要具备的技能1\n2. 为了实现目标，角色需要具备的技能2\n3. 为了实现目标，角色需要具备的技能3\n\n## 工作流：\n1. 描述角色工作流程的第一步\n2. 描述角色工作流程的第二步\n3. 描述角色工作流程的第三步`
-        },
-        {
-          id: 2,
-          name: '任务执行',
-          desc: '适用于有明确的工作步骤的任务执行场景，强调步骤的清晰度和可操作性',
-          content: `# 角色：任务执行助手\n你是一个专业的任务执行助手，擅长分解和执行复杂任务\n\n## 任务目标：\n[清晰描述需要完成的任务]\n\n## 执行步骤：\n1. 步骤一：[具体操作]\n2. 步骤二：[具体操作]\n3. 步骤三：[具体操作]\n\n## 注意事项：\n- 注意事项1\n- 注意事项2`
-        },
-        {
-          id: 3,
-          name: '角色扮演',
-          desc: '适用于聊天陪伴、互动娱乐场景，可帮助模型扮演特定的角色进行对话',
-          content: `# 角色：[角色名称]\n\n## 角色背景：\n[详细描述角色的背景故事、性格特点、说话风格等]\n\n## 对话风格：\n- 语言特点：[如幽默、专业、温和等]\n- 常用表达：[角色特有的口头禅或表达方式]\n\n## 互动方式：\n[描述如何与用户互动，如何回应不同类型的问题]`
-        },
-        {
-          id: 4,
-          name: '技能调用（搜索插件）',
-          desc: '适用于调用插件、工作流获取信息并按照格式输出的场景',
-          content: `# 角色：信息检索专家\n你擅长使用各种工具检索和整合信息\n\n## 工作流程：\n1. 理解用户需求\n2. 选择合适的搜索工具\n3. 执行搜索并获取结果\n4. 整理和呈现信息\n\n## 输出格式：\n根据搜索结果，按照以下格式输出：\n- 来源：[信息来源]\n- 摘要：[核心内容]\n- 详情：[详细信息]`
-        },
-        {
-          id: 5,
-          name: '基于知识库回答',
-          desc: '适用于客服等基于特定知识库回答的场景',
-          content: `# 角色：专业客服\n你是一个专业的客服人员，基于公司知识库为用户提供准确的答案\n\n## 工作原则：\n1. 优先从知识库中查找答案\n2. 确保回答准确、专业\n3. 如果知识库中没有相关信息，诚实告知用户\n\n## 回答流程：\n1. 理解用户问题\n2. 在知识库中检索相关信息\n3. 组织语言，清晰回答\n4. 必要时提供补充说明`
-        },
-        {
-          id: 6,
-          name: '使用Jinja语法',
-          desc: '以生成图提示词的设计师为例，可以试试使用Jinja语法，让提示词更灵活',
-          content: `# 角色：AI绘画提示词专家\n你是一个专业的AI绘画提示词设计师\n\n## 任务：\n根据用户输入生成专业的绘画提示词\n\n{% if style %}\n## 风格要求：\n{{ style }}\n{% endif %}\n\n{% if elements %}\n## 必包含元素：\n{% for element in elements %}\n- {{ element }}\n{% endfor %}\n{% endif %}\n\n## 输出格式：\n请生成详细的英文提示词，包含：主体、风格、光照、构图等要素`
-        }
-      ]
+      templateList: []
+    }
+  },
+  computed: {
+    filteredTemplateList() {
+      if (!this.searchKeyword.trim()) {
+        return this.templateList;
+      }
+      const keyword = this.searchKeyword.toLowerCase().trim();
+      return this.templateList.filter(item => {
+        return item.name && item.name.toLowerCase().includes(keyword);
+      });
     }
   },
   methods: {
-    showDiglog(data) {
+    showDiglog(data,type) {
       this.dialogVisible = true;
-      if (data && data.id) {
-        const template = this.templateList.find(t => t.id === data.id);
-        if (template) {
-          this.selectedTemplate = template;
-        }
+      this.activeTab = type;
+      if (data && data.length) {
+        this.templateList = data;
       }
+      this.searchKeyword = '';
     },
     handleClose() {
       this.dialogVisible = false;
       this.selectedTemplate = null;
       this.searchKeyword = '';
     },
-    handleSearch() {
-      this.$emit('search', this.searchKeyword);
-    },
     handleSearchClear() {
       this.searchKeyword = '';
-      this.$emit('search', '');
+    },
+    isTemplateSelected(item) {
+      if (!this.selectedTemplate || !item) {
+        return false;
+      }
+      if (this.selectedTemplate.templateId && item.templateId) {
+        return this.selectedTemplate.templateId === item.templateId;
+      }
+      if (this.selectedTemplate.customPromptId && item.customPromptId) {
+        return this.selectedTemplate.customPromptId === item.customPromptId;
+      }
+      return false;
     },
     selectTemplate(template) {
       this.selectedTemplate = template;
     },
     handleInsertPrompt(item) {
-      this.$emit('insert', item.content);
-      this.$message.success(this.$t('agent.promptTemplate.insertSuccess') || '插入成功');
+      this.getPrompt(item.prompt)
+      this.$message.success(this.$t('agent.promptTemplate.insertSuccess'));
+      this.dialogVisible = false;
     },
     formatTemplateContent(content) {
       if (!content) return '';
@@ -225,7 +207,7 @@ export default {
   .library-main {
     display: flex;
     gap: 16px;
-    height: 400px;
+    height: 45vh;
     margin-top: 16px;
     
     .template-list {
@@ -282,9 +264,11 @@ export default {
             justify-content: center;
             margin-right: 12px;
             
-            i {
-              font-size: 20px;
-              color: $color;
+            img {
+              width:100%;
+              height:100%;
+              border-radius:50%;
+              object-fit: cover;
             }
           }
           
@@ -321,6 +305,7 @@ export default {
           
           /deep/ .el-button {
             padding: 4px 0;
+            font-weight: bold;
           }
         }
       }

@@ -143,8 +143,8 @@
         }
         
         @media (max-width: 620px) {
-            .session-item {
-                width: 95vw;
+            .history-box .session-item,.session-item {
+                width: 95vw!important;
             }
         }
     }

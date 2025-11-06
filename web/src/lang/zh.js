@@ -879,7 +879,9 @@ export default {
             insertSuccess: '插入成功',
             searchPlaceholder: '请输入提示词名称搜索',
             selectTemplate: '请选择提示词模板',
-            insertPrompt:'插入'
+            insertPrompt:'插入',
+            emptyText:'当前空间暂无可用的提示词资源',
+            all:'全部'
         }
     },
     agentDiglog:{

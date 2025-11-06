@@ -127,6 +127,7 @@ func GetMCPList(ctx *gin.Context, userID, orgID, name string) (*response.ListRes
 }
 
 func GetMCPSelect(ctx *gin.Context, userID, orgID string, name string) (*response.ListResult, error) {
+	// 获取自定义mcp列表
 	resp, err := mcp.GetCustomMCPList(ctx.Request.Context(), &mcp_service.GetCustomMCPListReq{
 		OrgId:  orgID,
 		UserId: userID,
@@ -152,8 +153,11 @@ func GetMCPSelect(ctx *gin.Context, userID, orgID string, name string) (*respons
 			ServerFrom:  mcpInfo.Info.From,
 			ServerURL:   mcpInfo.SseUrl,
 			Type:        constant.MCPTypeMCP,
+			Avatar:      cacheCustomMCPAvatar(ctx, mcpInfo.Info.AvatarPath),
 		})
 	}
+
+	// 获取mcp server列表
 	mcpServerList, err := mcp.GetMCPServerList(ctx.Request.Context(), &mcp_service.GetMCPServerListReq{
 		Name: name,
 		Identity: &mcp_service.Identity{
@@ -178,6 +182,7 @@ func GetMCPSelect(ctx *gin.Context, userID, orgID string, name string) (*respons
 			ToolId:   mcpServerInfo.McpServerId,
 			ToolName: mcpServerInfo.Name,
 			ToolType: constant.MCPTypeMCPServer,
+			Avatar:   cacheCustomMCPAvatar(ctx, mcpServerInfo.AvatarPath),
 		})
 	}
 	return &response.ListResult{
@@ -321,7 +326,7 @@ func toMCPSquareDetail(ctx *gin.Context, mcpSquare *mcp_service.SquareMCPDetail)
 func toMCPSquareInfo(ctx *gin.Context, mcpSquareInfo *mcp_service.SquareMCPInfo) response.MCPSquareInfo {
 	return response.MCPSquareInfo{
 		MCPSquareID: mcpSquareInfo.McpSquareId,
-		Avatar:      cacheMCPAvatar(ctx, mcpSquareInfo.AvatarPath),
+		Avatar:      cacheCustomMCPAvatar(ctx, mcpSquareInfo.AvatarPath),
 		Name:        mcpSquareInfo.Name,
 		Desc:        mcpSquareInfo.Desc,
 		From:        mcpSquareInfo.From,

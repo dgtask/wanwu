@@ -198,6 +198,12 @@ func cacheUserAvatar(ctx *gin.Context, avatarObjectPath string) request.Avatar {
 // 例如 http://api/static/abc/def.jpg => /v1/static/avatar/abc/def.png
 func cacheWorkflowAvatar(avatarURL string) request.Avatar {
 	avatar := request.Avatar{}
+
+	if avatarURL == "" {
+		avatar.Path = config.Cfg().DefaultIcon.WorkflowIcon
+		return avatar
+	}
+
 	avatarCacheMu.Lock()
 	defer avatarCacheMu.Unlock()
 

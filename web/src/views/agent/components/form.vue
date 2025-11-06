@@ -77,7 +77,7 @@
       </div>
     </div>
     <div class="agent_form">
-      <!-- 智能体信息 -->
+      <!-- 系统提示词 -->
       <div class="block prompt-box drawer-info">
             <h3 class="labelTitle">系统提示词</h3>
             <div class="rl" style="padding: 10px;">
@@ -91,6 +91,7 @@
                 :rows="5"
               ></el-input>
             </div>
+            <promptTemplate ref="promptTemplate" />
       </div>
       <!-- 智能体配置 -->
       <div class="drawer-form">
@@ -283,9 +284,10 @@
                   v-for="(n, i) in allTools"
                   :key="`${i}ac`"
                 >
-                  <div
-                    class="name"
-                  >
+                  <div class="name">
+                  <div class="toolImg">
+                    <img :src="'/user/api/'+n.avatar.path" v-show="n.avatar && n.avatar.path" />
+                  </div>
                   <el-tooltip class="item" effect="dark" :content="displayName(n)" placement="top-start">
                     <span>{{ displayName(n).length > 20 ? displayName(n).substring(0, 20) + '...' : displayName(n) }}</span>
                   </el-tooltip>
@@ -470,6 +472,7 @@ import knowledgeSetDialog from "./knowledgeSetDialog";
 import { readWorkFlow } from "@/api/workflow";
 import Chat from "./chat";
 import LinkIcon from "@/components/linkIcon.vue";
+import promptTemplate from "./prompt/index.vue";
 import knowledgeSelect from "@/components/knowledgeSelect.vue";
 export default {
   components: {
@@ -483,7 +486,13 @@ export default {
     knowledgeSetDialog,
     knowledgeSelect,
     metaSet,
-    ToolDeatail
+    ToolDeatail,
+    promptTemplate
+  },
+  provide() {
+    return {
+      getPrompt: this.getPrompt
+    }
   },
   watch: {
     editForm: {
@@ -659,6 +668,9 @@ export default {
   },
   methods: {
     ...mapActions("app", ["setMaxPicNum","clearMaxPicNum"]),
+    getPrompt(prompt){
+      this.editForm.instructions = prompt;
+    },
     handleBuiltin(n){
       this.$refs.toolDeatail.showDiaglog(n)
     },
@@ -1274,6 +1286,7 @@ export default {
   gap: 10px;
   height: calc(100% - 60px);
   .drawer-info {
+    position:relative;
     width: 30%;
     margin: 10px 0;
     border-radius: 6px;
@@ -1630,6 +1643,19 @@ export default {
         color:#ccc;
         margin-left:4px;
       }
+      .toolImg{
+        width:30px;
+        height:30px;
+        border-radius:50%;
+        background:#eee;
+        margin-right:5px;
+        img{
+          width:100%;
+          height:100%;
+          border-radius:50%;
+          object-fit: cover;
+        }
+      }
 
     }
     .bt {
@@ -1718,7 +1744,7 @@ export default {
 .custom-tooltip.el-tooltip__popper.is-light[x-placement^="top"] .popper__arrow {
   border-top-color: #ccc !important;
 }
-.echo .session-item{
+.drawer-test .echo .session-item{
   width:30vw!important;
 }
 .model-option-content {

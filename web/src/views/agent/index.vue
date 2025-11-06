@@ -154,9 +154,11 @@ export default {
   methods: {
     ...mapActions("app", ["setMaxPicNum","clearMaxPicNum"]),
     checkMobile(){
-      this.isMobile = window.innerWidth <= 768;
-      if (!this.isMobile) {
+      this.isMobile = window.innerWidth < 768;
+      if (this.isMobile) {
         this.showMobileMenu = false;
+        this.showAside = false;
+      }else{
         this.showAside = true;
       }
     },

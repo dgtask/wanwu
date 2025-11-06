@@ -755,6 +755,7 @@ export default {
             search: '输入名称搜索',
             deleteHint: '确定要删除该提示词模板吗？'
         },
+
         server:{
             slogan:'可绑定已发布的应用，创建自己的MCP server，并对外提供服务。',
             search:'请输入MCP名称进行搜索',
@@ -926,6 +927,19 @@ export default {
             required:'是否必填',
             yes:'是',
             no:'否'
+        },
+        promptTemplate:{
+            recommended:'推荐',
+            personal:'个人',
+            builtIn:'内置',
+            custom:'自定义',
+            insertPrompt: '插入提示词',
+            insertSuccess: '插入成功',
+            searchPlaceholder: '请输入提示词名称搜索',
+            selectTemplate: '请选择提示词模板',
+            insertPrompt:'插入',
+            emptyText:'当前空间暂无可用的提示词资源',
+            all:'全部'
         }
     },
     agentDiglog:{

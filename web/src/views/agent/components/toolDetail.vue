@@ -108,13 +108,13 @@ export default {
     rerankChange(val){
       if(val){
         const data = {
-          assistantId:this.$router.query.id,
+          assistantId:this.$route.query.id,
           toolId:this.currentItem.toolId,
           toolConfig:{
             rerankId:this.rerankId
           }
         }
-        updateRerank({assistantId:toolId}).then(res =>{
+        updateRerank(data).then(res =>{
           if(res.code === 0){
             this.$emit('updateDetail')
           }
@@ -146,6 +146,7 @@ export default {
       this.dialogVisible = true;
       this.currentItem = n;
       if(n.toolId === 'bochawebsearch'){
+        this.getRerankData();
         this.rerankId = n.toolConfig.rerankId || '';
       }
       this.getDeatil(n);

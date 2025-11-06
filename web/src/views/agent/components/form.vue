@@ -81,7 +81,9 @@
       <div class="block prompt-box drawer-info">
             <div class="promptTitle">
               <h3>系统提示词</h3>
-              <span class="el-icon-folder-add"></span>
+              <el-tooltip class="item" effect="dark" content="提交至提示词" placement="top-start">
+              <span class="el-icon-folder-add" @click="handleShowPrompt"></span>
+              </el-tooltip>
             </div>
             <div class="rl" style="padding: 10px;">
               <el-input
@@ -415,6 +417,8 @@
     />
     <!-- 内置工具详情 -->
     <ToolDeatail ref="toolDeatail" @updateDetail="updateDetail" />
+    <!-- 提交至提示词 -->
+    <createPrompt ref="createPrompt"  @updateDetail="updateDetail" />
     <!-- 元数据设置 -->
     <el-dialog
       :visible.sync="metaSetVisible"
@@ -476,6 +480,7 @@ import { readWorkFlow } from "@/api/workflow";
 import Chat from "./chat";
 import LinkIcon from "@/components/linkIcon.vue";
 import promptTemplate from "./prompt/index.vue";
+import createPrompt from "./prompt/createPrompt.vue"
 import knowledgeSelect from "@/components/knowledgeSelect.vue";
 export default {
   components: {
@@ -490,7 +495,8 @@ export default {
     knowledgeSelect,
     metaSet,
     ToolDeatail,
-    promptTemplate
+    promptTemplate,
+    createPrompt
   },
   provide() {
     return {
@@ -671,6 +677,9 @@ export default {
   },
   methods: {
     ...mapActions("app", ["setMaxPicNum","clearMaxPicNum"]),
+    handleShowPrompt(){
+      this.$refs.createPrompt.showDialog();
+    },
     getPrompt(prompt){
       this.editForm.instructions = prompt;
     },

@@ -8,6 +8,14 @@ export const getPromptTemplateDetail = (data)=>{
         params: data
     })
 }
+//创建自定义prompt
+export const createPromptTemplate = (data)=>{
+    return service({
+        url: `${BASE_URL}/prompt/custom`,
+        method: 'put',
+        data
+    })
+}
 //获取自定义prompt列表
 export const getPromptTemplateList= (data)=>{
     return service({

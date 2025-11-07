@@ -25,7 +25,7 @@
                         <template v-if="type === 'workflow'">
                                 <div class="tool_box">
                                    <div class="tool_img">
-                                        <img :scr="'/user/api/' + item.avatar.path" v-show="item.avatar && item.avatar.path" />
+                                        <img :src="'/user/api/' + item.avatar.path" v-show="item.avatar && item.avatar.path" />
                                     </div>
                                     <span>{{item.name}}</span>
                                 </div>
@@ -38,7 +38,7 @@
                             <el-collapse-item  :name="item.toolId">
                                 <template slot="title">
                                    <div class="tool_img">
-                                        <img :scr="'/user/api/' + item.avatar.path" v-show="item.avatar && item.avatar.path" />
+                                        <img :src="'/user/api/' + item.avatar.path" v-show="item.avatar && item.avatar.path" />
                                     </div>
                                    <h3>{{item.toolName}}</h3>
                                    <span v-if="item.loading" class="el-icon-loading loading-text"></span>
@@ -210,7 +210,6 @@ export default {
             })
         },
         addMcpItem(n,action){
-            console.log(action)
             addMcp({assistantId:this.assistantId,actionName:action.name,mcpId:n.toolId,mcpType:n.toolType}).then(res =>{
                 if(res.code === 0){
                     this.$set(action, 'checked', true);
@@ -292,8 +291,6 @@ export default {
             this.mcpList = row.mcpInfos || [];
             this.workFlowList = row.workFlowInfos || [];
             this.customList  = row.customInfos || [];
-            console.log(this.customList)
-            console.log(this.mcpList)
         },
 
         setWorkflow(data){

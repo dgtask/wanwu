@@ -65,7 +65,15 @@
         </div>
       </div>
     </div>
-
+    <div slot="footer" class="dialog-footer">
+      <el-button 
+        type="primary" 
+        @click="handleInsertSelected"
+        :disabled="!selectedTemplate"
+      >
+        {{ $t('agent.promptTemplate.insertPrompt') }}
+      </el-button>
+    </div>
   </el-dialog>
 </template>
 
@@ -82,6 +90,13 @@ export default {
       activeTab: 'builtIn',
       selectedTemplate: null,
       templateList: []
+    }
+  },
+  watch:{
+    activeTab(newVal, oldVal) {
+      if (this.dialogVisible && newVal !== oldVal) {
+        this.$emit('tabChange', newVal);
+      }
     }
   },
   computed: {
@@ -131,6 +146,11 @@ export default {
       this.getPrompt(item.prompt)
       this.$message.success(this.$t('agent.promptTemplate.insertSuccess'));
       this.dialogVisible = false;
+    },
+    handleInsertSelected() {
+      if (this.selectedTemplate) {
+        this.handleInsertPrompt(this.selectedTemplate);
+      }
     },
     formatTemplateContent(content) {
       if (!content) return '';

@@ -59,7 +59,7 @@ chunk_label_redis_client = redis_utils.get_redis_connection(redis_db=5)
 
 # -----------------
 # 初始化知识库
-def init_knowledge_base(user_id, kb_name, kb_id="", embedding_model_id=""):
+def init_knowledge_base(user_id, kb_name, kb_id="", embedding_model_id="", enable_knowledge_graph = False):
     response_info = {'code': 0, "message": "成功"}
     # ----------------1、检测向量库名称是否合法
     kb_is_legal = is_valid_string(user_id + kb_name)
@@ -82,7 +82,10 @@ def init_knowledge_base(user_id, kb_name, kb_id="", embedding_model_id=""):
         response_info['message'] = '已存在相同名字的向量知识库'
         return response_info
     # ----------------2、建立向量库
-    milvus_init_result = milvus_utils.init_knowledge_base(user_id, kb_name, kb_id, embedding_model_id)
+    milvus_init_result = milvus_utils.init_knowledge_base(user_id, kb_name,
+                                                          kb_id = kb_id,
+                                                          embedding_model_id = embedding_model_id,
+                                                          enable_knowledge_graph = enable_knowledge_graph)
     logger.info('向量库初始化结果：')
     logger.info(repr(milvus_init_result))
 

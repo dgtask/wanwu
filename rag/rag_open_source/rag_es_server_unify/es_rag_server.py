@@ -33,6 +33,7 @@ def init_kb():
     kb_name = data.get("kb_name")
     kb_id = data["kb_id"]  # 必须字段
     embedding_model_id = data["embedding_model_id"]  # 必须字段
+    enable_knowledge_graph = data.get("enable_knowledge_graph", False)
     userId_kb_names = []
     dense_dim = 1024
     try:
@@ -73,7 +74,8 @@ def init_kb():
                 formatted_time = utc_now.strftime('%Y-%m-%d %H:%M:%S')
                 uk_data = [
                     {"index_name": index_name, "userId": userId, "kb_name": kb_name,
-                     "creat_time": formatted_time, "kb_id": kb_id, "embedding_model_id": embedding_model_id}
+                     "creat_time": formatted_time, "kb_id": kb_id, "embedding_model_id": embedding_model_id,
+                     "enable_knowledge_graph": enable_knowledge_graph}
                 ]
                 es_ops.bulk_add_uk_index_data(KBNAME_MAPPING_INDEX, uk_data)
                 # ====== 新建完成，需要获取一下 kb_id,看看是否新建成功 ======
@@ -245,6 +247,37 @@ def add_vector_data():
     finally:
         logger.info(f"{userId},{kb_name},bulk_add end")
 
+
+@app.route('/rag/kn/enable_graph', methods=['POST'])
+def get_enable_graph():
+    """ 查询知识库是否开启知识图谱"""
+    logger.info("-----------------------启动知识库是否开启知识图谱查询-------------------\n")
+    data = request.get_json()
+    userId = data.get("userId")
+    kb_name = data.get("kb_name")
+    try:
+        # ******** 先检查 是否有新建 index ***********
+        es_ops.create_index_if_not_exists(KBNAME_MAPPING_INDEX, mappings=es_mapping.uk_mappings)  # 确保 KBNAME_MAPPING_INDEX 已创建
+        enable_knowledge_graph = es_ops.get_uk_kb_enable_graph(userId, kb_name)
+        logger.info(f"当前用户:{userId},知识库:{kb_name}, enable_knowledge_graph: {enable_knowledge_graph}")
+        result = {
+            "code": 0,
+            "message": "success",
+            "data": {
+                "enable_knowledge_graph": enable_knowledge_graph
+            }
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{userId},知识库是否开启知识图谱查询的接口返回结果为：{jsonarr}")
+        return jsonarr
+    except Exception as e:
+        result = {
+            "code": 1,
+            "message": str(e)
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{userId},知识库是否开启知识图谱查询的接口返回结果为：{jsonarr}")
+        return jsonarr
 
 @app.route('/rag/kn/list_kb_names', methods=['POST'])
 def list_kb_names():

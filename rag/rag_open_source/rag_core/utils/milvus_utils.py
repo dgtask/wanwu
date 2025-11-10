@@ -62,13 +62,19 @@ def generate_chunks_bacth(chunks: list, batch_size=1000):
         yield batch_data
 
 
-def init_knowledge_base(user_id, kb_name, kb_id="", embedding_model_id=""):
+def init_knowledge_base(user_id, kb_name, kb_id="", embedding_model_id="", enable_knowledge_graph = False):
     response_info = {'code': 0, "message": '成功'}
     url = MILVUS_BASE_URL + '/rag/kn/init_kb'
     headers = {'Content-Type': 'application/json'}
     if not kb_id:
         kb_id = str(uuid.uuid4())
-    data = {'userId': user_id, 'kb_name': kb_name, "kb_id": kb_id, "embedding_model_id": embedding_model_id}
+    data = {
+        "userId": user_id,
+        "kb_name": kb_name,
+        "kb_id": kb_id,
+        "embedding_model_id": embedding_model_id,
+        "enable_knowledge_graph": enable_knowledge_graph
+    }
     try:
         response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'), timeout=TIME_OUT)
         if response.status_code != 200:
@@ -573,6 +579,34 @@ def update_milvus_content_status(user_id: str, kb_name: str, file_name: str, con
         }
 
     return make_request(url, data)
+
+
+def get_knowledge_enable_graph(user_id, kb_name):
+    response_info = {'code': 1, "message": ''}
+
+    url = MILVUS_BASE_URL + '/rag/kn/enable_graph'
+    headers = {'Content-Type': 'application/json'}
+    data = {'userId': user_id, "kb_name": kb_name}
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'), timeout=TIME_OUT)
+        if response.status_code != 200:
+            response_info['message'] = str(response.text)
+        else:
+            result_data = json.loads(response.text)
+            if result_data['code'] != 0:
+                response_info['code'] = result_data['code']
+                response_info['message'] = result_data['message']
+            else:
+                response_info["code"] = 0
+                response_info['data'] = result_data['data']
+                logger.info("milvus查询知识库graph状态请求成功")
+                return response_info
+    except Exception as e:
+        response_info['code'] = 1
+        response_info['message'] = str(e)
+
+    logger.error(f"milvus查询知识库graph状态请求失败：{response_info['message']}")
+    return response_info
 
 
 def get_milvus_content_status(user_id: str, kb_name: str, content_id_list: list):

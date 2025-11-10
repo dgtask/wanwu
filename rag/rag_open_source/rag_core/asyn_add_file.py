@@ -99,16 +99,11 @@ def kafkal():
             chunk_type = message_value["doc"].get("chunk_type", "default")
             separators = message_value["doc"].get("separators", ['。'])
             is_enhanced = message_value["doc"].get("is_enhanced", 'false')
-            graph_schema_objectname = message_value["doc"].get("graph_schema_objectname", "")
-            graph_schema_filename = message_value["doc"].get("graph_schema_filename", "")
-            enable_knowledge_graph = message_value["doc"].get("enable_knowledge_graph", "false")
 
             # 文件导入时选择解析方式，默认勾选文字提取，可选光学识别ocr当多选时此参数默认为["text"],当勾选ocr时传：["text","ocr"]
             parser_choices = message_value["doc"]["parser_choices"] if "parser_choices" in message_value["doc"] else [
                 "text"]
             ocr_model_id = message_value["doc"]["ocr_model_id"] if "ocr_model_id" in message_value["doc"] else [
-                ""]
-            graph_model_id = message_value["doc"]["graph_model_id"] if "graph_model_id" in message_value["doc"] else [
                 ""]
             pre_process = message_value["doc"]["pre_process"] if "pre_process" in message_value["doc"] else []
             meta_data_rules = message_value["doc"]["meta_data"] if "meta_data" in message_value["doc"] else []
@@ -142,14 +137,14 @@ def kafkal():
                     # ============ 异步添加 =============
                     lock = threading.Lock()
                     thread = threading.Thread(target=add_files, args=(
-                    user_id, kb_name, filename, object_name, file_id, is_enhanced, enable_knowledge_graph, graph_schema_objectname, graph_schema_filename, graph_model_id, pre_process, meta_data_rules, split_config))
+                    user_id, kb_name, filename, object_name, file_id, is_enhanced, pre_process, meta_data_rules, split_config))
                     lock.acquire()
                     thread.start()
                     lock.release()
                     # ============ 异步添加 =============
                 else:
                     # ============ 顺序添加 =============
-                    add_files(user_id, kb_name, filename, object_name, file_id, is_enhanced, enable_knowledge_graph, graph_schema_objectname, graph_schema_filename, graph_model_id, pre_process, meta_data_rules, split_config, kb_id=kb_id)
+                    add_files(user_id, kb_name, filename, object_name, file_id, is_enhanced, pre_process, meta_data_rules, split_config, kb_id=kb_id)
                     # ============ 顺序添加 =============
                 logger.info('----->kafka异步消费完成：user_id=%s,kb_name=%s,filename=%s,file_id=%s,process finished' % (user_id, kb_name,filename,file_id))
                 master_control_logger.info('----->kafka异步消费完成：user_id=%s,kb_name=%s,filename=%s,file_id=%s,process finished' % (user_id, kb_name, filename, file_id))
@@ -276,8 +271,7 @@ def parse_meta_data(docs, parse_rules):
 
 
 def add_files(user_id, kb_name, file_name, object_name, file_id,
-              is_enhanced, enable_knowledge_graph, graph_schema_objectname, graph_schema_filename, graph_model_id,
-              pre_process_rules, meta_data_rules, split_config: SplitConfig, kb_id=""):
+              is_enhanced, pre_process_rules, meta_data_rules, split_config: SplitConfig, kb_id=""):
     response_info = {'code': 0, "message": "成功"}
     user_data_path = USER_DATA_PATH
     convert_dir = CONVERT_DIR
@@ -463,52 +457,6 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
             master_control_logger.error('文档切分失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name) + repr(e))
             mq_rel_utils.update_doc_status(file_id, status=54)
             return
-    # -------------- 将切分好的chunks 进行图谱数据提取构建 --------------
-    # 将 chunks 按 batch_size 分组提取
-    all_graph_chunks = []
-    all_graph_vocabulary_set = set()
-    batch_size = 10
-    if enable_knowledge_graph == "true":
-        schema = {}
-        # 当graph_schema_filename,graph_schema_objectname有值则说明用户自己上传excel，否则schema为空后续会用内置schema抽取
-        if graph_schema_filename and graph_schema_objectname:
-            schema_file_path = os.path.join(filepath, graph_schema_filename)
-            graph_download_status, graph_download_link = minio_utils.get_file_from_minio(graph_schema_objectname,
-                                                                                         schema_file_path)
-            logger.info("graph_download_status=%s,graph_download_link=%s" %
-                        (graph_download_status, graph_download_link))
-            schema = schema_utils.parse_excel_to_schema_json(schema_file_path)
-
-        extracted_graph_datas = []
-        for i in range(0, len(chunks), batch_size):
-            batch_num = int(i / batch_size) + 1
-            temp_chunks = []
-            for doc in chunks[i:i + batch_size]:
-                temp_chunks.append({
-                    "title": file_name,
-                    "snippet": doc["text"],
-                    "source_type": "RAG_KB",
-                    "meta_data": doc["meta_data"]
-                })
-            try:
-                result_data = knowledge_base_utils.get_extrac_graph_data(temp_chunks, file_name, schema=schema)
-                graph_chunks = result_data['graph_chunks']
-                all_graph_chunks.extend(graph_chunks)
-                all_graph_vocabulary_set.update(result_data['graph_vocabulary_set'])
-                for data in graph_chunks:
-                    extracted_graph_datas.append(data["graph_data"])
-                logger.info(f'第{batch_num}批文档提取graph数据成功'
-                            + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name) + str(
-                    result_data))
-                master_control_logger.info(f'第{batch_num}批文档提取graph数据成功'
-                                           + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
-            except Exception as e:
-                logger.error(repr(e))
-                logger.error(f'第{batch_num}批文档提取graph数据失败'
-                             + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
-                master_control_logger.error(f'第{batch_num}批文档提取graph数据失败'
-                                            + "user_id=%s,kb_name=%s,file_name=%s" % (
-                                            user_id, kb_name, file_name) + repr(e))
     try:
         logger.info('添加文档meta开始' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
         master_control_logger.info('添加文档meta开始' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
@@ -573,41 +521,6 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
         logger.error('文档插入es失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
         master_control_logger.error('文档插入es失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name) + repr(e))
         mq_rel_utils.update_doc_status(file_id, status=56)
-        return
-
-    # --------------5、insert es graph_data
-    try:
-        if enable_knowledge_graph == "true" and len(all_graph_chunks) > 0:
-            logger.info(f'graph_data 插入es开始,all_graph_chunks len:{len(all_graph_chunks)}')
-            master_control_logger.info(f'graph_data 插入es开始,all_graph_chunks len:{len(all_graph_chunks)}')
-            insert_es_result = es_utils.add_es(user_id, kb_name, all_graph_chunks, file_name, kb_id=kb_id)
-            logger.info(repr(file_name) + '添加es结果：' + repr(insert_es_result))
-            master_control_logger.info(repr(file_name) + '添加es结果：' + repr(insert_es_result))
-            if insert_es_result['code'] != 0:
-                # 回调
-                logger.error(
-                    'graph_data插入es失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
-                master_control_logger.error(
-                    'graph_data插入es失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
-                mq_rel_utils.update_doc_status(file_id, status=56, type=type)
-                return
-            else:
-                # 插入成功后，更新update_graph_vocabulary_set 数据
-                kb_id = knowledge_base_utils.get_kb_name_id(user_id, kb_name)
-                redis_utils.update_graph_vocabulary_set(graph_redis_client, kb_id,
-                                                        elements_to_add=all_graph_vocabulary_set)
-                # 回调
-                logger.info(
-                    'graph_data插入es完成' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
-                master_control_logger.info(
-                    'graph_data插入es完成' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
-                mq_rel_utils.update_doc_status(file_id, status=35, type=type)
-    except Exception as e:
-        logger.error(repr(e))
-        logger.error('graph_data插入es失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
-        master_control_logger.error(
-            'graph_data插入es失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name) + repr(e))
-        mq_rel_utils.update_doc_status(file_id, status=56, type=type)
         return
 
     # --------------7、最终完成

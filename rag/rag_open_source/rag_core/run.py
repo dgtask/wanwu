@@ -60,12 +60,16 @@ def init_kb():
         kb_name = init_info.get("knowledgeBase", "")
         kb_id = init_info.get("kb_id", "")
         embedding_model_id = init_info.get("embedding_model_id", "")
+        enable_knowledge_graph = init_info.get("enable_knowledge_graph", False)
         logger.info(repr(init_info))
         assert len(user_id) > 0
         assert len(kb_name) > 0 or len(kb_id) > 0
         assert len(embedding_model_id) > 0
 
-        result_data = kb_utils.init_knowledge_base(user_id, kb_name, kb_id=kb_id, embedding_model_id=embedding_model_id)
+        result_data = kb_utils.init_knowledge_base(user_id, kb_name,
+                                                   kb_id=kb_id,
+                                                   embedding_model_id=embedding_model_id,
+                                                   enable_knowledge_graph=enable_knowledge_graph)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(result_data, ensure_ascii=False))
         # response = make_response(json.dumps(result_data, ensure_ascii=False),headers)

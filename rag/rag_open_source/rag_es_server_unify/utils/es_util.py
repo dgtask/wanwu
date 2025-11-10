@@ -2176,8 +2176,6 @@ def get_uk_kb_emb_model_id(userId, kb_name):
                 "must": [
                     {"term": {"userId": userId}},
                     {"term": {"kb_name": kb_name}},
-                    # {"match": {"userId": userId}},
-                    # {"match": {"kb_name": kb_name}},
                 ]
             }
         }
@@ -2189,6 +2187,29 @@ def get_uk_kb_emb_model_id(userId, kb_name):
     logger.info(f"userId:{userId},kb_name:{kb_name} 对应的 embedding_model_id 为:{embedding_model_id}")
     return embedding_model_id
 
+
+def get_uk_kb_enable_graph(userId, kb_name):
+    """ 获取知识库映射的graph  """
+    enable_knowledge_graph = False
+    logger.info(f"userId:{userId},kb_name:{kb_name} ====== get_uk_kb_enable_graph")
+    # 查询条件
+    query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {"term": {"userId": userId}},
+                    {"term": {"kb_name": kb_name}},
+                ]
+            }
+        }
+    }
+    response = es.search(index=KBNAME_MAPPING_INDEX, body=query)
+    # 遍历搜索结果，获取 kb_id
+    for hit in response["hits"]["hits"]:
+        if "enable_knowledge_graph" in hit['_source']:
+            enable_knowledge_graph = hit['_source']["enable_knowledge_graph"]
+    logger.info(f"userId:{userId},kb_name:{kb_name} 对应的 enable_knowledge_graph 为:{enable_knowledge_graph}")
+    return enable_knowledge_graph
 
 def update_uk_kb_name(userId, old_kb_name, new_kb_name):
     """ 更新 uk映射表 知识库名 """

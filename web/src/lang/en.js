@@ -802,6 +802,9 @@ export default {
             zoomOut:'缩小',
             fitView:'适应画布',
             resetZoom:'实际大小',
+            processing:'处理中',
+            finished:'已完成',
+            failed:'处理失败'
         },
         communityReport:{
             name:"名称",

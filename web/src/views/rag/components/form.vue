@@ -144,8 +144,8 @@
             </span>
           </p>
         </div>
-        <div class="block prompt-box safety-box">
-          <graphSwitch ref="graphSwitch" @graphSwitchchange="graphSwitchchange"/>
+        <div class="block prompt-box safety-box" v-if="showGraphSwitch">
+          <graphSwitch ref="graphSwitch" @graphSwitchchange="graphSwitchchange" :label="'知识图谱'"/>
         </div>
       </div>
       <div class="drawer-test">
@@ -247,7 +247,8 @@ export default {
           semanticsPriority: 0.2, //语义权重
           topK: 5, //topK 获取最高的几行
           threshold: 0.4, //过滤分数阈值
-          maxHistory:0//最长上下文
+          maxHistory:0,//
+          useGraph:false
         },
         safetyConfig:{
           enable: false,
@@ -274,7 +275,7 @@ export default {
       logoFileList: [],
       debounceTimer:null, //防抖计时器
       isUpdating: false, // 防止重复更新标记
-      isSettingFromDetail: false // 防止详情数据触发更新标记
+      isSettingFromDetail: false, // 防止详情数据触发更新标记
     };
   },
   watch:{
@@ -297,7 +298,6 @@ export default {
           });
           if (changed && !this.isUpdating) {
             const isMixPriorityMatch = newVal['knowledgeConfig']['matchType'] === 'mix' && newVal['knowledgeConfig']['priorityMatch'];
-            //&&  newVal['knowledgebases'].length > 0 
             if(newVal['modelParams']!== '' || (isMixPriorityMatch && !newVal['knowledgeConfig']['rerankModelId'])){
               this.updateInfo();
             }
@@ -305,6 +305,12 @@ export default {
       },500)
     },
     deep: true
+    },
+  },
+  computed:{
+      showGraphSwitch() {
+      console.log(this.editForm.knowledgebases)
+      return this.editForm.knowledgebases && this.editForm.knowledgebases.some(item => item.graphSwitch === 1)
     }
   },
   mounted() {
@@ -327,7 +333,7 @@ export default {
   },
   methods: {
     graphSwitchchange(val){
-      console.log(val)
+      this.editForm.knowledgeConfig.useGraph = val;
     },
     submitMeta(){
       const metaData  = this.$refs.metaSet.getMetaData();

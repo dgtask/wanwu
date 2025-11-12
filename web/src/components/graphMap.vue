@@ -7,36 +7,44 @@
           {{headerName}}
         </span>
       </div>
-      <div class="graph-toolbar">
+      <div class="graph-toolbar" v-if="showToolBar">
+        <span class="graphStatus">
+          <span class="statusNum">{{data.processingCount || 0}}</span>
+          <span class="statusText">{{$t('knowledgeManage.graph.processing')}}</span>
+        </span>
+        <span class="graphStatus">
+          <span class="statusNum">{{data.successCount || 0}}</span>
+          <span class="statusText">{{$t('knowledgeManage.graph.finished')}}</span>
+        </span>
+        <span class="graphStatus">
+          <span class="statusNum">{{data.failCount || 0}}</span>
+          <span class="statusText">{{$t('knowledgeManage.graph.failed')}}</span>
+        </span>
+        <el-divider direction="vertical"></el-divider>
         <el-tooltip :content="$t('knowledgeManage.graph.zoomIn')" placement="top">
           <el-button 
             icon="el-icon-zoom-in" 
-            circle 
-            size="mini" 
             @click="zoomIn"
           ></el-button>
         </el-tooltip>
+        <el-divider direction="vertical"></el-divider>
         <el-tooltip :content="$t('knowledgeManage.graph.zoomOut')" placement="top">
           <el-button 
             icon="el-icon-zoom-out" 
-            circle 
-            size="mini" 
             @click="zoomOut"
           ></el-button>
         </el-tooltip>
+        <el-divider direction="vertical"></el-divider>
         <el-tooltip :content="$t('knowledgeManage.graph.fitView')" placement="top">
           <el-button 
             icon="el-icon-full-screen" 
-            circle 
-            size="mini" 
             @click="fitView"
           ></el-button>
         </el-tooltip>
+        <el-divider direction="vertical"></el-divider>
         <el-tooltip :content="$t('knowledgeManage.graph.resetZoom')" placement="top">
           <el-button 
             icon="el-icon-refresh-left" 
-            circle 
-            size="mini" 
             @click="resetZoom"
           ></el-button>
         </el-tooltip>
@@ -44,8 +52,6 @@
         <el-tooltip :content="$t('knowledgeManage.graph.refresh')" placement="top">
           <el-button 
             icon="el-icon-refresh" 
-            circle 
-            size="mini" 
             :loading="loading"
             @click="refreshData"
           ></el-button>
@@ -58,6 +64,7 @@
 
 <script>
 import G6 from '@antv/g6'
+import { transformGraphData } from '@/utils/graphDataTransform'
 
 export default {
   name: 'GraphMap',
@@ -66,24 +73,14 @@ export default {
       type: Object,
       default: function() {
         return {
-          nodes: [
-            { id: '1', label: '中心节点', type: 'circle', size: 20, style: { fill: '#5B8FF9', stroke: '#1890ff' } },
-            { id: '2', label: '节点A', type: 'circle', size: 20, style: { fill: '#C6E5FF' } },
-            { id: '3', label: '节点B', type: 'circle', size: 20, style: { fill: '#C6E5FF' } },
-            { id: '4', label: '节点C', type: 'circle', size: 20, style: { fill: '#C6E5FF' } },
-            { id: '5', label: '节点D', type: 'circle', size: 20, style: { fill: '#C6E5FF' } }
-          ],
-          edges: [
-            { id: 'e1', source: '1', target: '2', label: '连接1' },
-            { id: 'e2', source: '1', target: '3', label: '连接2' },
-            { id: 'e3', source: '1', target: '4', label: '连接3' },
-            { id: 'e4', source: '1', target: '5', label: '连接4' },
-            { id: 'e5', source: '2', target: '2', label: '连接5' },
-          ]
         }
       }
     },
     showHeader:{
+      type:Boolean,
+      default:true
+    },
+    showToolBar:{
       type:Boolean,
       default:true
     },
@@ -129,7 +126,11 @@ export default {
       graph: null,
       loading: false,
       zoom: 1,
-      lastLabelSwitchRAF: 0
+      lastLabelSwitchRAF: 0,
+      graphData:{
+        nodes:[],
+        edges:[]
+      }
     }
   },
   computed: {
@@ -137,14 +138,15 @@ export default {
       if (this.$route && this.$route.query && this.$route.query.name) {
         return this.$route.query.name
       }
-      return '知识库'
     }
   },
   watch: {
     data: {
       handler(newData) {
         if (this.graph && newData) {
-          this.updateGraphData(newData)
+          const transformedData = transformGraphData(newData)
+          this.graphData = transformedData
+          this.updateGraphData(transformedData)
         }
       },
       deep: true,
@@ -163,16 +165,7 @@ export default {
   },
   methods: {
     goBack(){
-      let id = this.knowledgeId
-      if (!id && this.$route && this.$route.params) {
-        id = this.$route.params.id
-      }
-      
-      if (id) {
-        this.$router.push({
-          path: `/knowledge/doclist/${id}`
-        })
-      }
+      this.$emit('goBack')
     },
     initGraph() {
       if (!this.$refs.graphContainer) {
@@ -285,7 +278,8 @@ export default {
       this.bindEvents()
 
       if (this.data && (this.data.nodes || this.data.edges)) {
-        this.graph.data(this.data)
+        const transformedData = transformGraphData(this.data)
+        this.graph.data(transformedData)
         this.graph.render()
         
         if (this.autoFit) {
@@ -330,7 +324,6 @@ export default {
       }
       return configs[this.layout] || configs.force
     },
-
     bindEvents() {
        if (!this.graph) return
  
@@ -474,18 +467,15 @@ export default {
  
     handleResize() {
       if (!this.graph || !this.$refs.graphContainer) return
-      
       const container = this.$refs.graphContainer
       const width = container.clientWidth
       const height = container.clientHeight
       
       this.graph.changeSize(width, height)
     },
- 
     getGraph() {
       return this.graph
     },
- 
     downloadImage(fileName = 'graph') {
       if (!this.graph) return
       
@@ -538,20 +528,115 @@ export default {
     z-index: 10;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid #e4e7ed;
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
+    gap: 0;
+    padding: 5px 24px;
+    min-width: 400px;
+    background: #ffffff;
+    border: 1px solid $color;
+    border-radius: 8px;
+    box-shadow: none;
+    .graphStatus{
+      color:$color;
+      display: flex;
+      align-items: center;
+      margin-right: 20px;
+      font-size: 14px;
+      .statusNum{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 4px;
+        width: 20px;
+        height: 20px;
+        background: $color;
+        color: #fff;
+        margin-right: 6px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .statusText{
+        white-space: nowrap;
+        font-size:14px;
+      }
+    }
     .el-button {
       margin: 0;
+      padding: 8px 16px;
+      color: $color;
+      border-color: transparent;
+      background-color: transparent;
+      border-radius: 4px;
+      font-size: 20px !important;
+      height: auto;
+      line-height: 1;
+    }
+    
+    ::v-deep .el-button {
+      i {
+        font-size: 20px !important;
+        color: $color !important;
+        width: 20px !important;
+        height: 20px !important;
+      }
+      
+      [class*="el-icon-"] {
+        font-size: 20px !important;
+        color: $color !important;
+      }
+    }
+    
+    /deep/ .el-button {
+      i {
+        font-size: 22px !important;
+        color: $color !important;
+        width: 22px !important;
+        height: 22px !important;
+      }
+      
+      [class*="el-icon-"] {
+        font-size: 22px !important;
+        color: $color !important;
+      }
+    }
+    
+    .el-button:hover {
+      color: #ffffff;
+      background-color: $color;
+    }
+    
+    ::v-deep .el-button:hover {
+      i {
+        color: #ffffff !important;
+        font-size: 20px !important;
+      }
+      
+      [class*="el-icon-"] {
+        color: #ffffff !important;
+        font-size: 20px !important;
+      }
+    }
+    
+    /deep/ .el-button:hover {
+      i {
+        color: #ffffff !important;
+        font-size: 20px !important;
+      }
+      
+      [class*="el-icon-"] {
+        color: #ffffff !important;
+        font-size: 20px !important;
+      }
+    }
+    
+    .el-button:focus {
+      color: $color;
+      background-color: transparent;
     }
 
     .el-divider {
-      margin: 0 4px;
-      height: 20px;
+      margin: 0 15px;
+      height: 15px;
+      background-color: $color;
     }
   }
 
@@ -559,6 +644,39 @@ export default {
     width: 100%;
     height: 100%;
   }
+  }
+}
+</style>
+
+<style lang="scss">
+.graph-toolbar {
+  .el-button {
+    font-size: 20px !important;
+  }
+  
+  .el-button i,
+  .el-button [class*="el-icon-"] {
+    font-size: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    line-height: 24px !important;
+    display: inline-block !important;
+  }
+  
+  .el-button:hover {
+    background-color: $color !important;
+    color: #ffffff !important;
+    
+    i,
+    [class*="el-icon-"] {
+      color: #ffffff !important;
+      font-size: 24px !important;
+    }
+  }
+  
+  .el-button.is-loading i,
+  .el-button.is-loading [class*="el-icon-"] {
+    font-size: 24px !important;
   }
 }
 </style>

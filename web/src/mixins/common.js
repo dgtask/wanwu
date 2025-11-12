@@ -14,6 +14,8 @@ export default {
      * @param {Object} opt
      * @param {string} [opt.containerSelector='.editable-wp'] - 监听拖拽的容器选择器
      * @param {(files:Array,ctx:Object)=>void} [opt.onFiles] - 文件落下后的处理回调
+     * @param {number} [opt.maxImageFiles=3] - 图片类型文件的最大上传数量
+     * @param {number} [opt.maxFiles=3] - 默认最大上传数量（已废弃，优先使用 maxImageFiles）
      */
     $setupDragAndDrop(opt = {}) {
       const { containerSelector = '.editable-wp', onFiles } = opt
@@ -22,6 +24,15 @@ export default {
 
       const prevent = (e) => { e.preventDefault(); e.stopPropagation(); wrap.classList.add('is-dropping'); }
       const leave = () => { wrap.classList.remove('is-dropping'); }
+      
+      // 判断文件是否为图片类型
+      const isImageFile = (f) => {
+        if (!f || !f.name) return false
+        var ext = (f.name.split('.').pop() || '').toLowerCase()
+        var imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']
+        return imageExts.indexOf(ext) > -1 || (f.type && f.type.indexOf('image/') === 0)
+      }
+      
       const onDrop = async (e) => {
         prevent(e)
         try {
@@ -31,28 +42,97 @@ export default {
           if (!rawFiles.length) return
 
           // 安全限制：数量/大小/类型白名单
-          const maxFiles = Number(opt.maxFiles || 3)
+          const maxImageFiles = Number(opt.maxImageFiles || opt.maxFiles || 3) // 图片类型文件的最大数量
           const maxSizeMB = Number(opt.maxSizeMB || 50) // 单个文件默认 50MB
           const maxSize = maxSizeMB * 1024 * 1024
           const allowExt = (opt.acceptExt || ['jpg','jpeg','png','gif','webp','bmp','svg','mp3','wav','ogg','txt','pdf','doc','docx','xlsx','xls','pptx','csv','html']).map(function(s){return String(s).toLowerCase()})
 
+          // 先找出第一个有效文件，判断文件类型
+          var firstValidFile = null
+          for (var j = 0; j < rawFiles.length; j++) {
+            var tempFile = rawFiles[j]
+            if (!tempFile || !tempFile.name) continue
+            if (typeof tempFile.size !== 'number' || tempFile.size < 0 || isNaN(tempFile.size)) continue
+            var tempExt = (tempFile.name.split('.').pop() || '').toLowerCase()
+            var tempOkType = allowExt.indexOf(tempExt) > -1 || (tempFile.type && (tempFile.type.indexOf('image/') === 0 || tempFile.type.indexOf('audio/') === 0))
+            if (tempOkType && tempFile.size <= maxSize) {
+              firstValidFile = tempFile
+              break
+            }
+          }
+          
+          // 如果没有有效文件，直接返回
+          if (!firstValidFile) {
+            if (this && this.$message && this.$message.warning) {
+              this.$message.warning('文件类型不支持或体积过大')
+            }
+            return
+          }
+          
+          // 判断第一个有效文件是否为图片类型
+          var isImageType = isImageFile(firstValidFile)
+          // 图片类型：使用 maxImageFiles 限制；非图片类型：限制为1个文件（覆盖之前）
+          var maxFiles = isImageType ? maxImageFiles : 1
+          
           // 过滤非法/过大文件
           const safeFiles = []
           const rejected = []
-          for (var i = 0; i < rawFiles.length && safeFiles.length < maxFiles; i++) {
+          for (var i = 0; i < rawFiles.length; i++) {
             var f = rawFiles[i]
-            var ext = (f.name && f.name.split('.').pop() || '').toLowerCase()
-            var okType = allowExt.indexOf(ext) > -1 || (f.type && (f.type.indexOf('image/') === 0 || f.type.indexOf('audio/') === 0))
-            if (!okType || (typeof f.size === 'number' && f.size > maxSize)) {
+            
+            // 检查文件对象是否完整（必须有 name 属性）
+            if (!f || !f.name) {
               rejected.push(f)
               continue
             }
+            
+            // 检查文件大小是否存在且有效（必须是数字且 >= 0）
+            if (typeof f.size !== 'number' || f.size < 0 || isNaN(f.size)) {
+              rejected.push(f)
+              continue
+            }
+            
+            var ext = (f.name && f.name.split('.').pop() || '').toLowerCase()
+            var okType = allowExt.indexOf(ext) > -1 || (f.type && (f.type.indexOf('image/') === 0 || f.type.indexOf('audio/') === 0))
+            
+            // 检查文件类型和大小（此时 f.size 已确保是有效数字）
+            if (!okType || f.size > maxSize) {
+              rejected.push(f)
+              continue
+            }
+            
+            // 检查当前文件是否为图片类型，确保文件类型一致
+            var currentFileIsImage = isImageFile(f)
+            if (!isImageType && currentFileIsImage) {
+              // 如果第一个文件不是图片，但当前文件是图片，拒绝（保持类型一致）
+              rejected.push(f)
+              continue
+            }
+            if (isImageType && !currentFileIsImage) {
+              // 如果第一个文件是图片，但当前文件不是图片，拒绝（保持类型一致）
+              rejected.push(f)
+              continue
+            }
+            
+            // 检查数量限制
+            // 非图片类型：只能上传1个文件（覆盖之前）；图片类型：使用 maxImageFiles 限制
+            if (safeFiles.length >= maxFiles) {
+              rejected.push(f)
+              continue
+            }
+            
             safeFiles.push(f)
           }
 
           // 提示被拒文件
           if (rejected.length && this && this.$message && this.$message.warning) {
-            this.$message.warning('部分文件类型不支持或体积过大，已自动忽略')
+            if (!isImageType && rawFiles.length > 1) {
+              this.$message.warning('非图片类型文件只能上传一个，已自动忽略多余文件')
+            } else if (isImageType && safeFiles.length < rawFiles.length) {
+              this.$message.warning('部分文件类型不支持或超出数量限制，已自动忽略')
+            } else {
+              this.$message.warning('部分文件类型不支持或体积过大，已自动忽略')
+            }
           }
 
           if (!safeFiles.length) return

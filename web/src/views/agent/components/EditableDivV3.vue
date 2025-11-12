@@ -128,18 +128,20 @@
             }
         },
         computed: {
-            // ...mapGetters('user', ['commonInfo']),
+            ...mapGetters("app", ["maxPicNum"]),
         },
         created(){
             // this.isLink = this.commonInfo.data.useModel.useInternet === 1 ? true : false;
             // this.getModelData()
         },
         mounted(){
+            console.log(this.maxPicNum)
             this.$nextTick(() => {
             this.$setupDragAndDrop({
             containerSelector: '.editable-wp',
+            maxImageFiles: this.maxPicNum,
             onFiles: (files) => {
-                const picked = files.slice(0, 3)
+                const picked = files
                 const fileObjs = picked.map(f => ({
                 fileName: f.name, name: f.name, size: f.size, type: f.type,
                 fileUrl: URL.createObjectURL(f), imgUrl: URL.createObjectURL(f)
@@ -151,6 +153,7 @@
                 else if ((mime && mime.indexOf('audio/') === 0) || ['mp3','wav','ogg'].indexOf(ext) > -1) ftype = 'audio/*'
                 else ftype = 'doc/*'
                 this.fileList = fileObjs
+                console.log(this.fileList)
                 this.fileType = ftype
                 this.fileUrl = fileObjs[0].fileUrl
                 this.hasFile = true

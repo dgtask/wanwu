@@ -33,11 +33,11 @@
               </div>
 
               <div class="content_title">
-                <el-button size="mini" type="primary" @click="$router.push(`/knowledge/graphMap?knowledgeId=${docQuery.knowledgeId}&name=${knowledgeName}`)">知识图谱</el-button>
-                <el-button size="mini" type="primary" @click="$router.push(`/knowledge/communityReport?knowledgeId=${docQuery.knowledgeId}&name=${knowledgeName}`)">社区报告</el-button>
+                <el-button size="mini" type="primary" @click="$router.push(`/knowledge/graphMap/${docQuery.knowledgeId}`)" v-if="graphSwitch && tableData.length > 0">知识图谱</el-button>
+                <el-button size="mini" type="primary" @click="$router.push(`/knowledge/communityReport?knowledgeId=${docQuery.knowledgeId}`)" v-if="graphSwitch && tableData.length > 0">社区报告</el-button>
                 <el-button size="mini" type="primary" icon="el-icon-refresh" @click="reload" >{{$t('common.gpuDialog.reload')}}</el-button>
                 <el-button size="mini" type="primary" @click="showMeta" v-if="[10,20,30].includes(permissionType)">元数据管理</el-button>
-                <el-button size="mini" type="primary" @click="$router.push(`/knowledge/hitTest?knowledgeId=${docQuery.knowledgeId}&name=${knowledgeName}`)">命中测试</el-button>
+                <el-button size="mini" type="primary" @click="$router.push(`/knowledge/hitTest?knowledgeId=${docQuery.knowledgeId}&graphSwitch=${graphSwitch}`)">命中测试</el-button>
                 <el-button
                   size="mini"
                   type="primary"
@@ -204,7 +204,7 @@ export default {
   components: { Pagination,SearchInput,mataData,batchMetaData,BatchMetatButton},
   data() {
     return {
-      knowledgeName:this.$route.query.name || '',
+      knowledgeName:'',
       loading:false,
       tableLoading:false,
       docQuery: {
@@ -227,7 +227,8 @@ export default {
       metaData:[],
       isDisabled:false,
       selectedTableData:[],
-      selectedDocIds:[]
+      selectedDocIds:[],
+      graphSwitch:false
     };
   },
   watch:{
@@ -555,9 +556,14 @@ export default {
     handleUpload() {
       this.$router.push({path:'/knowledge/fileUpload',query:{id:this.docQuery.knowledgeId,name:this.knowledgeName}})
     },
-    refreshData(data) {
+    refreshData(data,tableInfo) {
       this.tableData = data
-      // 分页组件刷新当前页数据后，基于全局已选集合恢复当前页的勾选
+      if(tableInfo && tableInfo.docKnowledgeInfo){
+        this.graphSwitch = tableInfo.docKnowledgeInfo.graphSwitch === 1 ? true : false
+        this.knowledgeName = tableInfo.docKnowledgeInfo.knowledgeName
+      }else{
+        this.graphSwitch = false
+      }
     }
   }
 };

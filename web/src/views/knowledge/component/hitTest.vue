@@ -35,8 +35,8 @@
         <div class="test_form">
           <searchConfig ref="searchConfig" @sendConfigInfo="sendConfigInfo" />
         </div>
-        <div class="hitTest_input graph_box">
-          <graphSwitch ref="graphSwitch" @graphSwitchchange="graphSwitchchange"/>
+        <div class="hitTest_input graph_box" v-if="graphSwitch">
+          <graphSwitch ref="graphSwitch" @graphSwitchchange="graphSwitchchange" :label="'知识图谱'"/>
         </div>
       </div>
       <div class="test-right test-box">
@@ -63,8 +63,13 @@
               <div class="resultTitle">
                 <span>
                   <span class="tag"  @click="showSectionDetail(index)">{{$t('knowledgeManage.section')}}#{{index+1}}</span>
-                  <span class="segment-type">{{item.childContentList && item.childContentList.length > 0 ? '#父子分段' : '#通用分段'}}</span>
-                  <span class="segment-length" v-if="item.childContentList && item.childContentList.length > 0" @click="showSectionDetail(index)">#{{item.childContentList.length || 0}}个子分段</span>
+                  <span v-if="['graph','communityreport'].includes(item.contentType)" class="segment-type">
+                    {{item.contentType === 'graph' ? '知识图谱' : '社区报告'}}
+                  </span>
+                  <span v-else>
+                    <span class="segment-type">{{item.childContentList && item.childContentList.length > 0 ? '#父子分段' : '#通用分段'}}</span>
+                    <span class="segment-length" v-if="item.childContentList && item.childContentList.length > 0" @click="showSectionDetail(index)">#{{item.childContentList.length || 0}}个子分段</span>
+                  </span>
                 </span>
                 <span class="score">{{$t('knowledgeManage.hitScore')}}: {{(formatScore(score[index]))}}</span>
               </div>
@@ -145,7 +150,9 @@ export default {
       formInline:null,
       knowledgeId:this.$route.query.knowledgeId,
       name:this.$route.query.name,
-      activeNames: []
+      graphSwitch:this.$route.query.graphSwitch || false,
+      activeNames: [],
+      useGraph:false
     };
   },
   methods: {
@@ -154,7 +161,7 @@ export default {
       this.$router.go(-1);
     },
     graphSwitchchange(val){
-      console.log(val)
+      this.useGraph = val
     },
     sendConfigInfo(data){
       this.formInline = data;
@@ -187,7 +194,8 @@ export default {
         this.$message.warning('存在未填信息,请补充')
         return
       }
-      
+      const { knowledgeMatchParams } = this.formInline;
+      this.$set(knowledgeMatchParams, 'useGraph', this.useGraph);
       const data = {
         ...this.formInline,
         knowledgeList:[this.knowledgeIdList],
@@ -223,7 +231,6 @@ export default {
     
     // 显示分段详情弹框
     showSectionDetail(index) {
-      console.log('showSectionDetail',index);
       const currentItem = this.searchList[index];
       const currentScore = parseFloat(this.score[index]) || 0;
       const data = {

@@ -508,3 +508,12 @@ export const getDocMetaList = (data)=>{
         data
     })
 };
+
+//获取知识图谱详情
+export const getGraphDetail = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/graph`,
+        method: 'get',
+        params:data
+    })
+};

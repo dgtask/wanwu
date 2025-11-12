@@ -198,8 +198,8 @@ const constantRoutes = [
                 meta:{perm: [PERMS.KNOWLEDGE]},
             },
             {
-                path: '/knowledge/graphMap',
-                component:resolve =>require(['@/components/graphMap.vue'],resolve),
+                path: '/knowledge/graphMap/:id',
+                component:resolve =>require(['@/views/knowledge/component/graph'],resolve),
                 meta:{perm: [PERMS.KNOWLEDGE]},
             },
             {

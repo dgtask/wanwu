@@ -1,4 +1,5 @@
 import request from "@/utils/request";
+import {USER_API} from "@/utils/requestConstants"
 
 export const getWorkFlowParams = (params) => {
     return request({
@@ -17,14 +18,14 @@ export const useWorkFlow = (data)=>{
 //应用广场工作流列表
 export const getExplorationFlowList = (params)=>{
     return request({
-        url: '/user/api/v1/exploration/app/list',
+        url: `${USER_API}/exploration/app/list`,
         method: 'get',
         params
     })
 };
 export const createWorkFlow = (data)=>{
     return request({
-        url: '/user/api/v1/appspace/workflow', //'/workflow/api/workflow/create',
+        url: `${USER_API}/appspace/workflow`, //'/workflow/api/workflow/create',
         method: 'post',
         data
     })
@@ -46,7 +47,7 @@ export const publishWorkFlow = (data)=>{
 //复制
 export const copyWorkFlow = (data)=>{
     return request({
-        url: '/user/api/v1/appspace/workflow/copy', //'/workflow/api/workflow/clone',
+        url: `${USER_API}/appspace/workflow/copy`, //'/workflow/api/workflow/clone',
         method: 'post',
         data
     })
@@ -89,7 +90,7 @@ export const uploadFile = (data) => {
 // 导入工作流
 export const importWorkflow = (data, config) => {
     return request({
-        url: `/user/api/v1/appspace/workflow/import`,
+        url: `${USER_API}/appspace/workflow/import`,
         method: 'post',
         data,
         config
@@ -99,7 +100,7 @@ export const importWorkflow = (data, config) => {
 // 导出工作流
 export const exportWorkflow = (params) => {
     return request({
-        url: `/user/api/v1/appspace/workflow/export`,
+        url: `${USER_API}/appspace/workflow/export`,
         method: "get",
         params,
         responseType: 'blob'

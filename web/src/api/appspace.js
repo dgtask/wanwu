@@ -37,7 +37,7 @@ export const getApiKeyRoot = (params)=>{
 // 获取智能体/文本问答/工作流列表
 export const getAppSpaceList = (params)=>{
     return request({
-        url: '/user/api/v1/appspace/app/list',
+        url: `${USER_API}/appspace/app/list`,
         method: 'get',
         params
     })

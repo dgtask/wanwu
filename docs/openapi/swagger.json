@@ -469,6 +469,20 @@
                 }
             }
         },
+        "request.History": {
+            "type": "object",
+            "properties": {
+                "needHistory": {
+                    "type": "boolean"
+                },
+                "query": {
+                    "type": "string"
+                },
+                "response": {
+                    "type": "string"
+                }
+            }
+        },
         "request.OAuthRefreshRequest": {
             "type": "object",
             "required": [
@@ -521,6 +535,12 @@
                 "query"
             ],
             "properties": {
+                "history": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.History"
+                    }
+                },
                 "query": {
                     "type": "string"
                 },

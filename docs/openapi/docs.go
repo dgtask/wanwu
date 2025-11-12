@@ -477,6 +477,20 @@ const docTemplate = `{
                 }
             }
         },
+        "request.History": {
+            "type": "object",
+            "properties": {
+                "needHistory": {
+                    "type": "boolean"
+                },
+                "query": {
+                    "type": "string"
+                },
+                "response": {
+                    "type": "string"
+                }
+            }
+        },
         "request.OAuthRefreshRequest": {
             "type": "object",
             "required": [
@@ -529,6 +543,12 @@ const docTemplate = `{
                 "query"
             ],
             "properties": {
+                "history": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.History"
+                    }
+                },
                 "query": {
                     "type": "string"
                 },

@@ -31,6 +31,7 @@ type Config struct {
 	PromptTemplate    PromptTemplatePathConfig   `json:"prompt-template" mapstructure:"prompt-template"`
 	WorkflowTemplates []*WorkflowTemplateConfig  `json:"workflows" mapstructure:"workflows"`
 	PromptTemplates   []*PromptTempConfig        `json:"prompts" mapstructure:"prompts"`
+	PromptEngineering PromptEngineeringConfig    `json:"prompt-engineering" mapstructure:"prompt-engineering"`
 	// middleware
 	Minio minio.Config `json:"minio" mapstructure:"minio"`
 	Redis redis.Config `json:"redis" mapstructure:"redis"`
@@ -128,6 +129,10 @@ type PromptTempConfig struct {
 	Desc       string `json:"desc" mapstructure:"desc"`
 	Author     string `json:"author" mapstructure:"author"`
 	Prompt     string `json:"prompt" mapstructure:"prompt"`
+}
+
+type PromptEngineeringConfig struct {
+	Optimization string `json:"optimization" mapstructure:"optimization"`
 }
 
 type WorkflowServiceConfig struct {

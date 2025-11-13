@@ -7089,6 +7089,272 @@ const docTemplate = `{
                 }
             }
         },
+        "/oauth/app": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "更新OAuth应用信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "oauth"
+                ],
+                "summary": "更新OAuth应用",
+                "parameters": [
+                    {
+                        "description": "OAuth应用更新请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateOauthAppReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "创建新的OAuth应用",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "oauth"
+                ],
+                "summary": "创建OAuth应用",
+                "parameters": [
+                    {
+                        "description": "OAuth应用创建请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateOauthAppReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "删除指定的OAuth应用",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "oauth"
+                ],
+                "summary": "删除OAuth应用",
+                "parameters": [
+                    {
+                        "description": "OAuth应用ID",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteOauthAppReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/oauth/app/list": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取OAuth应用分页列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "oauth"
+                ],
+                "summary": "获取OAuth应用列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.OAuthAppInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/oauth/app/status": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "启用或禁用OAuth应用",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "oauth"
+                ],
+                "summary": "更新OAuth应用状态",
+                "parameters": [
+                    {
+                        "description": "OAuth应用状态更新请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateOauthAppStatusReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/oauth/code/authorize": {
+            "get": {
+                "description": "授权码方式-获取授权码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "oauth"
+                ],
+                "summary": "授权码方式",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "备案ID",
+                        "name": "client_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "重定向URI",
+                        "name": "redirect_uri",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "响应类型",
+                        "name": "response_type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "权限范围",
+                        "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "状态参数",
+                        "name": "state",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "重定向到指定URI",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/org": {
             "put": {
                 "security": [
@@ -11706,6 +11972,10 @@ const docTemplate = `{
                 "id"
             ],
             "properties": {
+                "graphSwitch": {
+                    "description": "知识图谱开关",
+                    "type": "integer"
+                },
                 "id": {
                     "description": "知识库id",
                     "type": "string"
@@ -11776,6 +12046,10 @@ const docTemplate = `{
                 "topK": {
                     "description": "知识条数",
                     "type": "integer"
+                },
+                "useGraph": {
+                    "description": "知识图谱开关",
+                    "type": "boolean"
                 }
             }
         },
@@ -12707,6 +12981,24 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CreateOauthAppReq": {
+            "type": "object",
+            "required": [
+                "name",
+                "redirectUri"
+            ],
+            "properties": {
+                "desc": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "redirectUri": {
+                    "type": "string"
+                }
+            }
+        },
         "request.CreatePromptByTemplateReq": {
             "type": "object",
             "required": [
@@ -13163,6 +13455,17 @@ const docTemplate = `{
                 }
             }
         },
+        "request.DeleteOauthAppReq": {
+            "type": "object",
+            "required": [
+                "clientId"
+            ],
+            "properties": {
+                "clientId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.DeleteReportReq": {
             "type": "object",
             "required": [
@@ -13609,6 +13912,10 @@ const docTemplate = `{
                 "topK": {
                     "description": "topK 获取最高的几行",
                     "type": "integer"
+                },
+                "useGraph": {
+                    "description": "是否使用知识图谱",
+                    "type": "boolean"
                 }
             }
         },
@@ -14764,6 +15071,43 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateOauthAppReq": {
+            "type": "object",
+            "required": [
+                "clientId",
+                "name",
+                "redirectUri"
+            ],
+            "properties": {
+                "clientId": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "redirectUri": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateOauthAppStatusReq": {
+            "type": "object",
+            "required": [
+                "clientId"
+            ],
+            "properties": {
+                "clientId": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "启停状态",
+                    "type": "boolean"
+                }
+            }
+        },
         "request.UpdateReportReq": {
             "type": "object",
             "required": [
@@ -15554,6 +15898,10 @@ const docTemplate = `{
                     "items": {
                         "type": "number"
                     }
+                },
+                "contentType": {
+                    "description": "graph：知识图谱（文本）, text：文档分段（文本）, community_report：社区报告（markdown）",
+                    "type": "string"
                 },
                 "knowledgeName": {
                     "type": "string"
@@ -16566,6 +16914,10 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/response.ChunkSearchList"
                     }
+                },
+                "useGraph": {
+                    "description": "是否使用知识图谱",
+                    "type": "boolean"
                 }
             }
         },
@@ -17509,6 +17861,35 @@ const docTemplate = `{
                 },
                 "userId": {
                     "type": "string"
+                }
+            }
+        },
+        "response.OAuthAppInfo": {
+            "type": "object",
+            "properties": {
+                "clientId": {
+                    "description": "客户端ID",
+                    "type": "string"
+                },
+                "clientSecret": {
+                    "description": "客户端密钥",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "应用描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "应用名称",
+                    "type": "string"
+                },
+                "redirectUri": {
+                    "description": "oauth重定向地址",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "oauth应用开关",
+                    "type": "boolean"
                 }
             }
         },

@@ -158,7 +158,7 @@ func (c *Client) CreateBuiltinTool(ctx context.Context, builtinTool *model.Built
 			sqlopt.WithToolSquareID(builtinTool.ToolSquareId),
 			sqlopt.WithOrgID(builtinTool.OrgID),
 			sqlopt.WithUserID(builtinTool.UserID),
-		).Apply(tx).First(&model.CustomTool{}).Error; err == nil {
+		).Apply(tx).First(&model.BuiltinTool{}).Error; err == nil {
 			return toErrStatus("mcp_create_duplicate_builtin_tool")
 		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return toErrStatus("mcp_create_builtin_tool_err", err.Error())

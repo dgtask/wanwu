@@ -893,6 +893,11 @@ def get_graph_search_list(user_id, kb_names, question, top_k, kb_ids=[], filter_
             # ======= 构建 triple_text 生成一个chunk插入社区报告开头 =======
             triple_text_list = []
             for s in es_search_list:
+                # ====== SPO 三元组前处理 =======
+                text = s["graph_data_text"]
+                # 检查字符串是否包含中文且包含has_attribute
+                if "has_attribute" in text and any('\u4e00' <= char <= '\u9fff' for char in text):
+                    s["graph_data_text"] = text.replace("has_attribute", "其具有属性")
                 for kb_entities in entities:  # 如果有图关键词，则进行SPO拉取
                     for kb_entity in kb_entities:
                         if kb_entity in s["graph_data_text"] and s["graph_data_text"] not in triple_text_list:
@@ -900,7 +905,7 @@ def get_graph_search_list(user_id, kb_names, question, top_k, kb_ids=[], filter_
             if triple_text_list:
                 triple_text = f"知识图谱信息:({'|'.join(triple_text_list)}) "
                 community_reports.append({"snippet": triple_text, "meta_data": {},
-                                          "title": "知识图谱", "content_type": "graph"})
+                                          "title": "知识图谱-实体属性关系", "content_type": "graph"})
 
             # if community_reports:
             #     community_reports[0]["snippet"] = triple_text + community_reports[0]["snippet"]

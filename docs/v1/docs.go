@@ -16823,6 +16823,9 @@ const docTemplate = `{
                 },
                 "knowledgeName": {
                     "type": "string"
+                },
+                "showGraphReport": {
+                    "type": "boolean"
                 }
             }
         },

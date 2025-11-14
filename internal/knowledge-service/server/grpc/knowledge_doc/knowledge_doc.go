@@ -630,8 +630,12 @@ func checkDocStatus(docList []*model.KnowledgeDoc) ([]uint32, []*model.Knowledge
 func buildDocListResp(list []*model.KnowledgeDoc, importTaskList []*model.KnowledgeImportTask, knowledge *model.KnowledgeBase, total int64, pageSize int32, pageNum int32) *knowledgebase_doc_service.GetDocListResp {
 	segmentConfigMap := buildSegmentConfigMap(importTaskList)
 	var retList = make([]*knowledgebase_doc_service.DocInfo, 0)
+	showGraphReport := false
 	if len(list) > 0 {
 		for _, item := range list {
+			if item.GraphStatus == model.GraphSuccess {
+				showGraphReport = true
+			}
 			retList = append(retList, buildDocInfo(item, segmentConfigMap))
 		}
 	}
@@ -641,9 +645,10 @@ func buildDocListResp(list []*model.KnowledgeDoc, importTaskList []*model.Knowle
 		PageSize: pageSize,
 		PageNum:  pageNum,
 		KnowledgeInfo: &knowledgebase_doc_service.KnowledgeInfo{
-			KnowledgeId:   knowledge.KnowledgeId,
-			KnowledgeName: knowledge.Name,
-			GraphSwitch:   int32(knowledge.KnowledgeGraphSwitch),
+			KnowledgeId:     knowledge.KnowledgeId,
+			KnowledgeName:   knowledge.Name,
+			GraphSwitch:     int32(knowledge.KnowledgeGraphSwitch),
+			ShowGraphReport: showGraphReport,
 		},
 	}
 }

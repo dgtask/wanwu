@@ -108,9 +108,6 @@ func RagGetReport(ctx context.Context, ragGetReportParams *RagGetReportParams) (
 	if resp.Code != successCode {
 		return nil, errors.New(resp.Message)
 	}
-	if resp.Data == nil || len(resp.Data.List) == 0 {
-		return nil, errors.New("report response is empty")
-	}
 	return resp.Data, nil
 }
 

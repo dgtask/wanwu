@@ -9,9 +9,10 @@ type DocPageResult struct {
 }
 
 type DocKnowledgeInfo struct {
-	KnowledgeId   string `json:"knowledgeId"`
-	KnowledgeName string `json:"knowledgeName"`
-	GraphSwitch   int32  `json:"graphSwitch"`
+	KnowledgeId     string `json:"knowledgeId"`
+	KnowledgeName   string `json:"knowledgeName"`
+	GraphSwitch     int32  `json:"graphSwitch"`
+	ShowGraphReport bool   `json:"showGraphReport"`
 }
 
 type ListDocResp struct {

@@ -325,9 +325,6 @@ func RagGetDocSegmentList(ctx context.Context, ragGetDocSegmentParams *RagGetDoc
 	if resp.Code != successCode {
 		return nil, errors.New(resp.Message)
 	}
-	if resp.Data == nil || len(resp.Data.List) == 0 {
-		return nil, errors.New("doc segment response is empty")
-	}
 	// 排序
 	slices.SortFunc(resp.Data.List, func(a, b FileSplitContent) int {
 		return cmp.Compare(a.MetaData.ChunkCurrentNum, b.MetaData.ChunkCurrentNum)

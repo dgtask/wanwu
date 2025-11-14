@@ -39,9 +39,10 @@ func GetDocList(ctx *gin.Context, userId, orgId string, r *request.DocListReq) (
 		PageNo:   int(resp.PageNum),
 		PageSize: int(resp.PageSize),
 		DocKnowledgeInfo: &response.DocKnowledgeInfo{
-			KnowledgeId:   knowledgeInfo.KnowledgeId,
-			KnowledgeName: knowledgeInfo.KnowledgeName,
-			GraphSwitch:   knowledgeInfo.GraphSwitch,
+			KnowledgeId:     knowledgeInfo.KnowledgeId,
+			KnowledgeName:   knowledgeInfo.KnowledgeName,
+			GraphSwitch:     knowledgeInfo.GraphSwitch,
+			ShowGraphReport: knowledgeInfo.ShowGraphReport,
 		},
 	}, nil
 }

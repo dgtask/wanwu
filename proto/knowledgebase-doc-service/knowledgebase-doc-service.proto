@@ -80,6 +80,7 @@ message KnowledgeInfo {
   string knowledgeId = 1;//知识库id
   string knowledgeName = 2;//知识库名称
   int32 graphSwitch = 3; //知识库图谱开关
+  bool showGraphReport = 4; //是否展示知识图谱和社区报告
 }
 
 message ImportDocReq {

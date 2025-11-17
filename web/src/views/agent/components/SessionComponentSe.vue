@@ -259,6 +259,10 @@
               <img :src="require('@/assets/imgs/copy-icon.png')" />
               <!-- <i class="el-icon-copy-document copy-icon" style="padding: 0 6px;margin: 0;" :title="$t('agent.clickCopy')" @click="()=>{copy(n.oriResponse) && copycb()}"></i> -->
             </div>
+            <!--提示话术-->
+            <div class="answer-operation-tip">
+              {{$t('agent.answerOperationTip')}}
+            </div>
           </div>
         </div>
 
@@ -1114,11 +1118,13 @@ export default {
             border-radius:6px;
           }
           .docInfo {
+            margin-left: 5px;
             .docInfo_name {
               color: #333;
             }
             .docInfo_size {
               color: #bbbbbb;
+              text-align: left !important;
             }
           }
         }
@@ -1221,6 +1227,11 @@ export default {
         .copy-icon:hover {
           color: #33a4df;
         }
+      }
+      .answer-operation-tip{
+        padding:0 0 4px 10px;
+        font-size: 12px;
+        color: #999;
       }
     }
   }

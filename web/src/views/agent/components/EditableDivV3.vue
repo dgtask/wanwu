@@ -6,6 +6,7 @@
                 <div v-for="(file,i) in fileList" class="echo-img-item" :key="'file'+i">
                     <el-image class="echo-img" :src="file.fileUrl" @click="showBigImg(file.fileUrl)"  :preview-src-list="[file.imgUrl]"></el-image>
                     <i class="el-icon-close echo-close" @click="clearFile"></i>
+                    <span class="el-icon-loading loading-icon-img" v-if="fileLoading"></span>
                 </div>
             </div>
             <div v-if="fileType === 'audio/*'" class="echo-audio-box">
@@ -27,7 +28,7 @@
                 <i class="el-icon-close echo-close" @click="clearFile"></i>
             </div>
             <!-- 问答输入框 -->
-            <div class="editable-wp flex">
+            <div class="editable-wp flex" :style="{'pointer-events':fileLoading ? 'none' : 'auto'}">
                 <div class="editable-wp-left rl">
                      <!-- <i  class="el-icon-upload2 upload-icon" @click="preUpload"></i> -->
                      <img class="upload-icon" :src="require('@/assets/imgs/uploadIcon.png')" @click="preUpload" v-if="type !== 'webChat'"/>
@@ -70,6 +71,7 @@
 
 <script>
     import commonMixin from '@/mixins/common'
+    import uploadChunk from '@/mixins/uploadChunk'
     import uploadDialog from './uploadBatchDialog'
     import { getModelList } from '@/api/cubm';
     import {mapGetters} from 'vuex'
@@ -82,7 +84,7 @@
             isModelDisable:{type:Boolean,default:false},
             type:{type:String}
         },
-        mixins: [commonMixin],
+        mixins: [commonMixin,uploadChunk],
         components:{uploadDialog},
         data(){
             return{
@@ -103,14 +105,16 @@
                 refreshLoading:false,
                //文件
                 hasFile:false,
-                fileIdList:null,
+                fileIdList:[],
                 fileType:'',
                 fileList:[],
                 fileUrl:'',
                 imgUrl:'',
                 modelType:'',
                 fileLoading:false,
-                isDragging:false
+                isDragging:false,
+                lastFileType:'',
+                dragConfigured:false
             }
         },
         watch:{
@@ -128,36 +132,45 @@
                     this.modelType = this.modelParams.modelSeries === 'deepseek' ? 'deepseek' : 'bigModel';
                     this.$emit('getModelType',this.modelType)
                 }
+            },
+            maxPicNum:{
+                handler(val){
+                    if (!val || this.dragConfigured) return
+                    this.initDrag(val)
+                    this.dragConfigured = true
+                },
+                immediate:true
             }
         },
         computed: {
             ...mapGetters("app", ["maxPicNum"]),
         },
-        created(){
-            // this.isLink = this.commonInfo.data.useModel.useInternet === 1 ? true : false;
-            // this.getModelData()
-        },
-        mounted(){
-            // this.$nextTick(() => {
-            // this.$setupDragAndDrop({
-            // containerSelector: '.editable--input',
-            // maxImageFiles: this.maxPicNum,
-            // onFiles: (files) => {
-            //     this.isDragging = true
-            //     this.processFiles(files)
-            //     }
-            // })
-            //  }) 
-        },
         methods:{
+            initDrag(maxFiles){
+                 this.$nextTick(() => {
+                this.$setupDragAndDrop({
+                containerSelector: '.editable-wp',
+                maxImageFiles: maxFiles,
+                onFiles: (files) => {
+                    this.isDragging = true
+                    this.processFiles(files)
+                    }
+                })
+             }) 
+            },
             // 处理文件的方法，提取出来供 handleDrop 和 onFiles 使用
             processFiles(files) {
                 if (!files || files.length === 0) return
                 
                 const picked = files
                 const fileObjs = picked.map(f => ({
+                    raw: f,
+                    uid: f.uid || this.$guid(),
+                    percentage: 0,
+                    progressStatus: 'active',
                     fileName: f.name, name: f.name, size: f.size, type: f.type,
-                    fileUrl: URL.createObjectURL(f), imgUrl: URL.createObjectURL(f)
+                    fileUrl: URL.createObjectURL(f), 
+                    imgUrl: URL.createObjectURL(f)
                 }))
                 const ext = (picked[0].name.split('.').pop() || '').toLowerCase()
                 const mime = picked[0].type
@@ -170,11 +183,33 @@
                 this.fileUrl = fileObjs[0].fileUrl
                 this.hasFile = true
                 this.fileLoading = true
+                if(this.fileList.length > 0){
+                    this.maxSizeBytes = 0;
+                    this.isExpire = true;
+                    for(let i = 0; i < this.fileList.length; i++) {
+                        if (!this.fileList[i].uploaded) {
+                            this.startUpload(i);
+                            this.fileList[i].uploaded = true;
+                        }
+                    }
+                }
 
+            },
+            uploadFile(fileName,oldFileName,fiePath){//文件上传完之后
+                if (this.lastFileType && this.lastFileType !== this.fileType) {
+                    this.fileIdList = [];
+                }
+                this.lastFileType = this.fileType;
+                this.fileLoading = false;
+                this.fileIdList.push({
+                    fileName,
+                    fileSize:this.fileList[this.fileIndex]['size'],
+                    fileUrl:fiePath,
+                })
             },
             // 处理拖拽到输入框的文件
             handleDrop(event) {
-                /* const dt = event.dataTransfer
+                const dt = event.dataTransfer
                 if (!dt || !dt.files) return
                 
                 const fileList = dt.files
@@ -183,7 +218,7 @@
                 
                 // 调用文件处理方法
                 this.processFiles(files)
-                */
+                
             },
             linkSearch(){
                 this.isActive = !this.isActive;
@@ -215,7 +250,7 @@
                 console.log(url)
             },
             clearFile(){
-                this.fileIdList = null
+                this.fileIdList = []
                 this.fileList = []
                 this.fileType = ''
                 this.fileUrl = ''
@@ -401,6 +436,16 @@
                 height:60px;
                 width:60px;
                 display:flex;
+                position: relative;
+                .loading-icon-img{
+                    position: absolute;
+                    right: 50%;
+                    top: 50%;
+                    transform: translate(50%, -50%);
+                    color: $color;
+                    font-size: 18px;
+                    animation: loading 1s linear infinite;
+                }
             }
             .echo-img{
                 width: 100%;
@@ -469,6 +514,12 @@
                 background-color: #333;
                 color: #fff;
             }
+        }
+        .is-dropping {
+            border-color: $color;
+            box-shadow: 0 0 0 1px $color;
+            border-radius:12px;
+            transition: border-color .2s, box-shadow .2s;
         }
         .editable-wp{
             position:relative;

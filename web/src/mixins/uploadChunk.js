@@ -207,6 +207,7 @@ export default {
               }
             })
           }catch(error){
+            console.log(error)
             this.$message.error(`${this.file.name}`+ i18n.t('fileChunk.uploadFail'))
             this.fileList[this.fileIndex]['showRemerge'] = 'true';
           }

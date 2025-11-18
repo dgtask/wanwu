@@ -80,12 +80,15 @@
       <div class="block prompt-box drawer-info">
         <div class="promptTitle">
           <h3>{{ $t('agent.form.systemPrompt') }}</h3>
-          <div>
+          <div class="prompt-title-icon">
             <el-tooltip class="item" effect="dark" :content="$t('agent.form.submitToPrompt')" placement="top-start">
               <span class="el-icon-folder-add" @click="handleShowPrompt"></span>
             </el-tooltip>
             <el-tooltip class="item" effect="dark" :content="$t('tempSquare.promptOptimize')" placement="top-start">
               <span style="margin-left: 5px" class="el-icon-s-help" @click="showPromptOptimize"></span>
+            </el-tooltip>
+            <el-tooltip class="item" effect="dark" :content="$t('tempSquare.promptCompare')" placement="top-start">
+              <span class="tool-icon" @click="showPromptCompare"><img :src="require('@/assets/imgs/temp-compare.png')" /></span>
             </el-tooltip>
           </div>
         </div>
@@ -695,6 +698,11 @@ export default {
   },
   methods: {
     ...mapActions("app", ["setMaxPicNum","clearMaxPicNum"]),
+    showPromptCompare(){
+      this.$router.push({
+        path: `/agent/promptCompare/${this.editForm.assistantId}`,
+      });
+    },
     updatePrompt(){
         this.$refs.promptTemplate.getPromptTemplateList()
     },
@@ -1344,13 +1352,19 @@ export default {
   }
   .promptTitle{
     display:flex;
+    align-items:center;
     justify-content:space-between;
     padding:10px 10px 0 10px;
+    .prompt-title-icon{
+      display:flex;
+      align-items:center;
+    }
     h3{
       font-size: 18px;
       font-weight: 800;
     }
     span{
+      margin-left: 5px;
       font-size: 16px;
       color:$color;
       cursor:pointer;
@@ -1358,6 +1372,17 @@ export default {
       padding:8px;
       border-radius:50%;
       background:#E0E7FF;
+    }
+    .tool-icon {
+      display:inline-block;
+      width:32px;
+      height:32px;
+      cursor:pointer;
+      img{
+        width:100%;
+        height:100%;
+        object-fit: cover;
+      }
     }
   }
   .actionConfig {

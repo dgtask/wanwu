@@ -175,23 +175,23 @@ export default {
       }
 
       if (this.question === "") {
-        this.$message.warning("请输入问题");
+        this.$message.warning(this.$t('knowledgeManage.inputTestContent'));
         return;
       }
       if(this.formInline === null){
-        this.$message.warning("请选择检索方式");
+        this.$message.warning(this.$t('knowledgeManage.selectSearchType'));
         return;
       }
       const { matchType, priorityMatch, rerankModelId } = this.formInline.knowledgeMatchParams;
       if ((matchType !== 'mix' || priorityMatch !== 1) && !rerankModelId) {
-        this.$message.warning("请选择Rerank模型");
+        this.$message.warning(this.$t('knowledgeManage.selectRerankModel'));
         return;
       }
       if(matchType === 'mix' && priorityMatch === 1){
         this.formInline.knowledgeMatchParams.rerankModelId = '';
       }
       if(this.$refs.metaSet.validateRequiredFields(this.knowledgeIdList['metaDataFilterParams']['metaFilterParams'])){
-        this.$message.warning('存在未填信息,请补充')
+        this.$message.warning(this.$t('knowledgeManage.metaInfoIncomplete'))
         return
       }
       const data = {

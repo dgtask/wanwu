@@ -594,7 +594,11 @@ export default {
           embeddingModelInfo: {
             modelId: row.embeddingModelInfo.modelId,
           },
-          knowledgeGraph: row.knowledgeGraph,
+          knowledgeGraph: {
+            llmModelId: row.llmModelId,
+            switch: row.graphSwitch === 1 ? true : false,
+            schemaUrl: "",
+          },
         };
       } else {
         this.ruleForm = {

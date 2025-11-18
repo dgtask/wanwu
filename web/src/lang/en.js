@@ -540,7 +540,8 @@ export default {
         promptOptimize: '提示词优化',
         promptOptimizeHint: '请填写提示词后，再进行提示词优化',
         optimize: '优化',
-        replace: '替换'
+        replace: '替换',
+        promptCompare: '提示词对比'
     },
 
     // 工作流/对话流
@@ -698,10 +699,13 @@ export default {
         communityReportTag:'Community Report',
         childSegmentCount:'#{{count}} child segments',
         hitChildSegments:'Hit {{count}} child segments',
-        inputTestContent:'请输入测试内容',
-        startTest:'开始测试',
-        section:'分段',
-        hitScore:'命中得分',
+        inputTestContent:'Please enter the test content',
+        selectSearchType:'Please select a retrieval method',
+        selectRerankModel:'Please select a Rerank model',
+        metaInfoIncomplete:'Some required metadata fields are empty, please fill them in',
+        startTest:'Start Test',
+        section:'Section',
+        hitScore:'Hit Score',
         pselectKnowledgeTips:'请选择命中知识库',
         allDoc:'全部文档',
         testResultTips:'根据选中的知识库，暂无',

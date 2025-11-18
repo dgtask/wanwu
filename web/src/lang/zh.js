@@ -540,7 +540,8 @@ export default {
         promptOptimize: '提示词优化',
         promptOptimizeHint: '请填写提示词后，再进行提示词优化',
         optimize: '优化',
-        replace: '替换'
+        replace: '替换',
+        promptCompare: '提示词对比'
     },
 
     // 工作流/对话流
@@ -699,6 +700,9 @@ export default {
         childSegmentCount:'#{{count}}个子分段',
         hitChildSegments:'命中{{count}}个子分段',
         inputTestContent:'请输入测试内容',
+        selectSearchType:'请选择检索方式',
+        selectRerankModel:'请选择Rerank模型',
+        metaInfoIncomplete:'存在未填信息，请补充',
         startTest:'开始测试',
         section:'分段',
         hitScore:'命中得分',

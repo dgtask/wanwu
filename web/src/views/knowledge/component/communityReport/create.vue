@@ -236,6 +236,8 @@ export default {
       this.ruleForm.title = "";
       this.ruleForm.fileUploadId = "";
       this.ruleForm.contentId = "";
+      this.createType = "single";
+      this.$refs.fileUpload && this.$refs.fileUpload.clearFileList();
       this.checkType = [];
     },
   },

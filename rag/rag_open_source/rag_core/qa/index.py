@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from utils import es_utils
-from utils import milvus_utils
 from typing import List, Dict, Any
 
 
@@ -10,24 +9,20 @@ def init_qa_base(user_id: str, qa_base: str, qa_id: str, embedding_model_id: str
     """
     创建问答库
     """
-    if not user_id or not qa_base or not qa_id:
+    if not user_id or not qa_base or not qa_id or not embedding_model_id:
         return {"code": 1, "message": "缺失必填参数"}
-    # 伪逻辑：检查是否已存在
-    # if exist(user_id, qa_id):
-    #     return {"code": 1, "message": "qa_id 已存在"}
-    return {"code": 0, "message": "success"}
+
+    return es_utils.init_qa_base(user_id, qa_base, qa_id, embedding_model_id)
 
 
 def delete_qa_base(user_id: str, qa_base: str, qa_id: str) -> Dict[str, Any]:
     """
     删除问答库
     """
-    if not user_id or not qa_id:
+    if not user_id or not qa_base or not qa_id:
         return {"code": 1, "message": "缺失必填参数"}
-    # 伪逻辑：检查是否存在
-    # if not exist(user_id, qa_id):
-    #     return {"code": 1, "message": "qa_id 不存在"}
-    return {"code": 0, "message": "success"}
+
+    return es_utils.del_qa_base(user_id, qa_base, qa_id)
 
 
 # ---------------------- 2. 问答对 CRUD ----------------------
@@ -37,44 +32,59 @@ def batch_add_qas(user_id: str, qa_base: str, qa_id: str, qa_pairs: List[Dict[st
     批量新增问答对
     qa_pairs: [{"qa_pair_id":"123","question":"q","answer":"a"}, ...]
     """
-    if not qa_pairs:
-        return {"code": 1, "message": "QAPairs 为空"}
+    if not user_id or not qa_base or not qa_id:
+        return {"code": 1, "message": "缺失必填参数"}
+    if not qa_pairs or not isinstance(qa_pairs, list):
+        raise ValueError("qa_pairs must be a list and not empty")
 
-    return {"code": 0, "message": "success"}
+    return es_utils.add_qas(user_id, qa_base, qa_id, qa_pairs)
 
 
-def get_qa_list(user_id: str, qa_base: str, qa_id: str, page_size: int, search_after: int) -> Dict[str, Any]:
+def get_qa_list(user_id: str, qa_base: str, qa_id: str, page_size: int, search_after: int):
     """
     分页获取问答对（冗余列表）
     """
-    # 伪数据
-    mock_list = []
-    return {"code": 0, "message": "success", "data": {"qa_list": mock_list, "qa_pair_total_num": 3}}
+    if not user_id or not qa_base or not qa_id:
+        return {"code": 1, "message": "缺失必填参数"}
+
+    return es_utils.get_qa_list(user_id, qa_base, qa_id, page_size, search_after)
 
 
-def update_qa(user_id: str, qa_base: str, qa_id: str, qa_pairs: List[Dict[str, str]]) -> Dict[str, Any]:
+def update_qa(user_id: str, qa_base: str, qa_id: str, qa_pair):
     """
     批量更新问答对（全量覆盖）
     """
-    if not qa_pairs:
-        return {"code": 1, "message": "QAPairs 为空"}
-    return {"code": 0, "message": "success"}
+    if not qa_pair or not isinstance(qa_pair, dict):
+        raise ValueError("qa_pair must be a dict and not empty")
+
+    if "qa_pair_id" not in qa_pair:
+        raise ValueError("qa_pair_id must exist in qa_pair")
+
+    if "question" not in qa_pair and "answer" not in qa_pair:
+        raise ValueError("question or answer should be in qa_pair")
+
+    return es_utils.update_qa_data(user_id, qa_base, qa_id, qa_pair["qa_pair_id"], qa_pair)
 
 
 def batch_delete_qas(user_id: str, qa_base: str, qa_id: str, qa_pair_ids: List[str]) -> Dict[str, Any]:
     """
     批量删除问答对
     """
-    if not qa_pair_ids:
-        return {"code": 1, "message": "QAPairIds 为空"}
-    return {"code": 0, "message": "success"}
+    if not qa_pair_ids or not isinstance(qa_pair_ids, list):
+        raise ValueError("qa_pair_ids must be a list and not empty")
+
+    return es_utils.del_qas(user_id, qa_base, qa_id, qa_pair_ids)
 
 
 def update_qa_status(user_id: str, qa_base: str, qa_id: str, qa_pair_id: str, status: bool) -> Dict[str, Any]:
     """
     启停单个问答对
     """
-    return {"code": 0, "message": "success"}
+    update_data = {
+        "qa_pair_id": qa_pair_id,
+        "status": status
+    }
+    return es_utils.update_qa_data(user_id, qa_base, qa_id, qa_pair_id, update_data)
 
 
 # ---------------------- 3. 元数据管理 ----------------------

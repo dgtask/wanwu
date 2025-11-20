@@ -1935,6 +1935,42 @@ def update_qa():
             f"当前用户:{user_id},问答库:{qa_base_name},qa_pair_id:{qa_pair_id}, 更新的接口返回结果为：{jsonarr}")
         return jsonarr
 
+@app.route('/api/v1/rag/es/get_qa_list', methods=['POST'])
+def get_qa_list():
+    """ 获取 分页展示 """
+    logger.info("--------------------------获取问答对的分页展示---------------------------\n")
+    data = request.get_json()
+    user_id = data.get("userId")
+    qa_index_name = get_qa_index_name(user_id)
+    qa_base_name = data.get("QABase")
+    qa_base_id = data["QAId"]
+    page_size = data.get("page_size")
+    search_after = data.get("search_after")
+    try:
+        if not qa_base_id:
+            qa_base_id = kb_info_ops.get_uk_kb_id(user_id, qa_base_name)
+        logger.info(f"用户:{user_id},问答库:{qa_base_name},qa_base_id:{qa_base_id}, page_size: {page_size}, search_after:{search_after}")
+
+        qa_result = qa_ops.get_qa_list(qa_index_name, qa_base_name, qa_base_id, page_size, search_after)
+        result = {
+            "code": 0,
+            "message": "success",
+            "data": qa_result
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(
+            f"当前用户:{user_id},问答库:{qa_base_name},page_size:{page_size},search_after:{search_after},分页查询的接口返回结果为：{jsonarr}")
+        return jsonarr
+    except Exception as e:
+        logger.info(f"获取问答对的分页展示时发生错误：{e}")
+        result = {
+            "code": 1,
+            "message": str(e)
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(
+            f"当前用户:{user_id},问答库:{qa_base_name},分页展示的接口返回结果为：{jsonarr}")
+        return jsonarr
 
 if __name__ == '__main__':
     app.run()  # debug=True

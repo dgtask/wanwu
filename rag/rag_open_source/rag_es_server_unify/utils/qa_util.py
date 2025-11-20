@@ -182,3 +182,50 @@ def update_qa_data(index_name, qa_base_name, qa_pair_id, upsert_data):
     except Exception as e:
         # 如果批量操作失败，返回失败状态和错误信息
         return {"success": False, "upserted": len(actions), "error": str(e)}
+
+
+def get_qa_list(index_name, qa_base_name, qa_base_id, page_size: int, search_after: int):
+    """ 获取分页展示 """
+    # ======== 分页查询参数 =============
+    query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {"term": {"QABase": qa_base_name}},
+                    {"term": {"QAId": qa_base_id}},
+                ]
+            }
+        },
+        #"search_after": [search_after],  # 初始化search_after参数
+        "from": search_after,
+        "size": page_size,
+        "sort": {"qa_pair_id": {"order": "asc"}},  # 确保按照文档ID升序排序
+        "_source": {
+            "excludes": [
+                "content_vector",
+                "q_768_content_vector",
+                "q_1024_content_vector",
+                "q_1536_content_vector",
+                "q_2048_content_vector"
+            ]
+        } #排除embedding数据
+    }
+    # 执行查询
+    response = es.search(
+        index=index_name,
+        body=query
+    )
+
+    # 获取当前页的文档列表
+    page_hits = response['hits']['hits']
+    qa_list = []
+    for doc in page_hits:
+        qa_list.append(doc['_source'])
+
+    # 获取匹配总数
+    total_hits = response['hits']['total']['value']
+
+    return {
+        "qa_list": qa_list,
+        "qa_pair_total_num": int(total_hits)
+    }

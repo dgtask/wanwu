@@ -1293,6 +1293,26 @@ def getReportsList():
     return response
 
 
+def knowledgeBaseGraph():
+    logger.info('---------------获取知识库知识图谱---------------')
+    try:
+        data = request.get_json()
+        user_id = data['userId']
+        kb_name = data.get("knowledgeBase", "")
+        kb_id = data.get("kb_id", "")
+
+        graph_data = graph_utils.get_kb_graph_data(user_id, kb_name, kb_id=kb_id)
+        response_info = {'code': 0, "message": "", "data": graph_data}
+        headers = {'Access-Control-Allow-Origin': '*'}
+        response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
+    except Exception as e:
+        logger.info(repr(e))
+        response_info = {'code': 1, "message": repr(e)}
+        headers = {'Access-Control-Allow-Origin': '*'}
+        response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
+    return response
+
+
 # ================= QA 知识库相关接口 =================
 # 1. 创建问答库
 @app.route("/rag/init-QA-base", methods=['POST'])
@@ -1305,7 +1325,7 @@ def init_qa_base():
         qa_base = data["QABase"]
         qa_id = data["QAId"]
         embedding_model_id = data["embedding_model_id"]
-        logger.info(f"[init_qa_base] uid={user_id}, base={qa_base}, qaid={qa_id}, embed={embedding_model_id}")
+        logger.info(f"[init_qa_base] uid={user_id}, qa_base={qa_base}, qa_id={qa_id}, embed_id={embedding_model_id}")
         response_info = qa_index.init_qa_base(user_id, qa_base, qa_id, embedding_model_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
@@ -1397,9 +1417,9 @@ def update_qa():
         user_id = data['userId']
         qa_base = data["QABase"]
         qa_id = data["QAId"]
-        qa_pairs = data["QAPairs"]
-        logger.info(f"[update_qa] uid={user_id}, base={qa_base}, qaid={qa_id}, count={len(qa_pairs)}")
-        response_info = qa_index.update_qa(user_id, qa_base, qa_id, qa_pairs)
+        qa_pair = data["QAPair"]
+        logger.info(f"[update_qa] uid={user_id}, base={qa_base}, qaid={qa_id}, count={len(qa_pair)}")
+        response_info = qa_index.update_qa(user_id, qa_base, qa_id, qa_pair)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:

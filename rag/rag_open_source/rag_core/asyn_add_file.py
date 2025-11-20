@@ -528,7 +528,7 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
 
     logger.info("user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name) + '===== 文档上传成功且完成')
     master_control_logger.info("user_id=%s,kb_name=%s,file_name=%s,kb_id=%s" % (user_id, kb_name, file_name, kb_id) + '===== 文档上传成功且完成')
-    mq_rel_utils.update_doc_status(file_id, status=10)
+    mq_rel_utils.update_doc_status(file_id, status=10, meta_datas=meta_parsed)
 
 
 if __name__ == "__main__":

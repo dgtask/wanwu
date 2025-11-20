@@ -12,7 +12,11 @@ from settings import EMBEDDING_BATCH_SIZE
 from settings import INDEX_NAME_PREFIX, SNIPPET_INDEX_NAME_PREFIX, KBNAME_MAPPING_INDEX
 import utils.es_util as es_ops
 import utils.meta_util as meta_ops
+import utils.kb_info as kb_info_ops
+import utils.qa_util as qa_ops
 import utils.mapping_util as es_mapping
+from utils import emb_util
+from utils.util import get_qa_index_name
 
 app = Flask(__name__)
 
@@ -41,98 +45,38 @@ def init_kb():
 
         es_ops.create_index_if_not_exists(content_index_name, mappings=es_mapping.cc_mappings)  # 确保 主控表 已创建
         es_ops.create_index_if_not_exists(KBNAME_MAPPING_INDEX, mappings=es_mapping.uk_mappings)  # 确保 KBNAME_MAPPING_INDEX 已创建
-        is_exists = es_ops.create_index_if_not_exists(index_name, mappings=es_mapping.mappings)
-        if is_exists:  # 如果之前创建过了，则查询是否有 kb_name
-            # kb_names = es_ops.get_kb_name_list(index_name) # 不使用
-            kb_names = es_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
-            logger.info(f"当前用户:{userId},共有知识库：{len(kb_names)}个，分别为{kb_names}")
-            judge_time2 = time.time()
-            judge_time = judge_time2 - judge_time1
-            logger.info(f"--------------------------查询kb_map时间:{judge_time}---------------------------\n")
-            s_time1 = time.time()
-            if kb_name in kb_names:
-                result = {
-                    "code": 1,
-                    "message": f"已存在同名知识库{kb_name}"
-                }
-                jsonarr = json.dumps(result, ensure_ascii=False)
-                logger.info(f"当前用户:{userId},知识库:{kb_name},ini知识库的接口返回结果为：{jsonarr}")
-                s_time2 = time.time()
-                s_time = s_time2 - s_time1
-                logger.info(f"--------------------------同名知识库判断时间:{s_time}---------------------------\n")
-                return jsonarr
-            else:
-                # ES 需提前 init_kb 添加到 KBNAME_MAPPING_INDEX
-                # 获取当前UTC时间
-                utc_now = datetime.utcnow()
-                # # 上海时区是UTC+8
-                # shanghai_tz = pytz.timezone('Asia/Shanghai')
-                # # 将UTC时间转换为上海时间
-                # shanghai_now = utc_now.replace(tzinfo=pytz.utc).astimezone(shanghai_tz)
-                # # 格式化上海时间为年月日时分秒
-                # formatted_time = shanghai_now.strftime('%Y-%m-%d %H:%M:%S')
-                formatted_time = utc_now.strftime('%Y-%m-%d %H:%M:%S')
-                uk_data = [
-                    {"index_name": index_name, "userId": userId, "kb_name": kb_name,
-                     "creat_time": formatted_time, "kb_id": kb_id, "embedding_model_id": embedding_model_id,
-                     "enable_graph": enable_knowledge_graph}
-                ]
-                es_ops.bulk_add_uk_index_data(KBNAME_MAPPING_INDEX, uk_data)
-                # ====== 新建完成，需要获取一下 kb_id,看看是否新建成功 ======
-                save_kb_id = es_ops.get_uk_kb_id(userId, kb_name)
-                if save_kb_id != kb_id:  # 新建失败，返回错误
-                    result = {
-                        "code": 1,
-                        "message": "ini知识库失败，ES写入失败",
-                    }
-                    jsonarr = json.dumps(result, ensure_ascii=False)
-                    logger.info(f"当前用户:{userId},知识库:{kb_name},ini知识库的接口返回结果为：{jsonarr}")
-                    return jsonarr
-                # 新建成功，返回
-                logger.info(f"当前用户:{userId},知识库:{kb_name},save_kb_id:{save_kb_id}")
-                result = {
-                    "code": 0,
-                    "message": "success"
-                }
-                jsonarr = json.dumps(result, ensure_ascii=False)
-                logger.info(f"当前用户:{userId},知识库:{kb_name},ini知识库的接口返回结果为：{jsonarr}")
-                return jsonarr
-        else:
-            # ES 需提前 init_kb 添加到 KBNAME_MAPPING_INDEX
-            # 获取当前UTC时间
-            utc_now = datetime.utcnow()
-            # # 上海时区是UTC+8
-            # shanghai_tz = pytz.timezone('Asia/Shanghai')
-            # # 将UTC时间转换为上海时间
-            # shanghai_now = utc_now.replace(tzinfo=pytz.utc).astimezone(shanghai_tz)
-            # # 格式化上海时间为年月日时分秒
-            # formatted_time = shanghai_now.strftime('%Y-%m-%d %H:%M:%S')
-            formatted_time = utc_now.strftime('%Y-%m-%d %H:%M:%S')
-            # ES 无需提前 init_kb kb_name,直接添加一条 kb_name 记录
-            uk_data = [
-                {"index_name": index_name, "userId": userId, "kb_name": kb_name,
-                 "creat_time": formatted_time, "kb_id": kb_id, "embedding_model_id": embedding_model_id}
-            ]
-            es_ops.bulk_add_uk_index_data(KBNAME_MAPPING_INDEX, uk_data)
-            # ====== 新建完成，需要获取一下 kb_id,看看是否新建成功 ======
-            save_kb_id = es_ops.get_uk_kb_id(userId, kb_name)
-            if save_kb_id != kb_id:  # 新建失败，返回错误
-                result = {
-                    "code": 1,
-                    "message": "ini知识库失败，ES写入失败",
-                }
-                jsonarr = json.dumps(result, ensure_ascii=False)
-                logger.info(f"当前用户:{userId},知识库:{kb_name},ini知识库的接口返回结果为：{jsonarr}")
-                return jsonarr
-            # 新建成功，返回
-            logger.info(f"当前用户:{userId},知识库:{kb_name},save_kb_id:{save_kb_id}")
-            result = {
-                "code": 0,
-                "message": "success"
-            }
-            jsonarr = json.dumps(result, ensure_ascii=False)
-            logger.info(f"当前用户:{userId},知识库:{kb_name},ini知识库的接口返回结果为：{jsonarr}")
-            return jsonarr
+        es_ops.create_index_if_not_exists(index_name, mappings=es_mapping.mappings)
+
+        kb_names = kb_info_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
+        logger.info(f"当前用户:{userId},共有知识库：{len(kb_names)}个，分别为{kb_names}")
+        judge_time2 = time.time()
+        judge_time = judge_time2 - judge_time1
+        logger.info(f"--------------------------查询kb_map时间:{judge_time}---------------------------\n")
+        if kb_name in kb_names:
+            raise RuntimeError(f"已存在同名知识库{kb_name}")
+
+        utc_now = datetime.utcnow()
+        formatted_time = utc_now.strftime('%Y-%m-%d %H:%M:%S')
+        uk_data = [
+            {"index_name": index_name, "userId": userId, "kb_name": kb_name,
+             "creat_time": formatted_time, "kb_id": kb_id, "embedding_model_id": embedding_model_id,
+             "enable_graph": enable_knowledge_graph}
+        ]
+        kb_info_ops.bulk_add_uk_index_data(KBNAME_MAPPING_INDEX, uk_data)
+        # ====== 新建完成，需要获取一下 kb_id,看看是否新建成功 ======
+        save_kb_id = kb_info_ops.get_uk_kb_id(userId, kb_name)
+        if save_kb_id != kb_id:  # 新建失败，返回错误
+            raise RuntimeError("ini知识库失败，ES写入失败")
+
+        # 新建成功，返回
+        logger.info(f"当前用户:{userId},知识库:{kb_name},save_kb_id:{save_kb_id}")
+        result = {
+            "code": 0,
+            "message": "success"
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{userId},知识库:{kb_name},ini知识库的接口返回结果为：{jsonarr}")
+        return jsonarr
 
     except Exception as e:
         result = {
@@ -154,13 +98,13 @@ def add_vector_data():
     userId = data.get("userId")
     kb_name = data.get("kb_name")
     kb_id = data.get("kb_id")
-    embedding_model_id = es_ops.get_uk_kb_emb_model_id(userId, kb_name)
+    embedding_model_id = kb_info_ops.get_uk_kb_emb_model_id(userId, kb_name)
     doc_list = data.get("data")
     userId_kb_names = []
     cc_doc_list = []  # content主控表的数据
     cc_duplicate_list = []
     if not kb_id:  # 如果没有传入 kb_id,则从映射表中获取
-        kb_id = es_ops.get_uk_kb_id(userId, kb_name)  # 从映射表中获取 kb_id ,添加往里传 kb_id
+        kb_id = kb_info_ops.get_uk_kb_id(userId, kb_name)  # 从映射表中获取 kb_id ,添加往里传 kb_id
         if not kb_id:  # 如果映射表中没有，则返回错误
             result = {
                 "code": 1,
@@ -169,7 +113,7 @@ def add_vector_data():
             jsonarr = json.dumps(result, ensure_ascii=False)
             return jsonarr
     # # **************** 校验 kb_name 是否已经初始化过 ****************
-    # userId_kb_ids = es_ops.get_uk_kb_id_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
+    # userId_kb_ids = kb_info.get_uk_kb_id_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
     # if kb_id not in userId_kb_ids:
     #     result = {
     #         "code": 1,
@@ -201,7 +145,7 @@ def add_vector_data():
         content_vector_exist = False
         mapping_properties = {}
         for batch_doc in batch_list(doc_list, batch_size=EMBEDDING_BATCH_SIZE):
-            res = es_ops.get_embs([x["embedding_content"] for x in batch_doc], embedding_model_id=embedding_model_id)
+            res = emb_util.get_embs([x["embedding_content"] for x in batch_doc], embedding_model_id=embedding_model_id)
             dense_vector_dim = len(res["result"][0]["dense_vec"]) if res["result"] else 1024
             field_name = f"q_{dense_vector_dim}_content_vector"
             if dense_vector_dim == 1024:
@@ -257,7 +201,7 @@ def get_kb_info():
     try:
         # ******** 先检查 是否有新建 index ***********
         es_ops.create_index_if_not_exists(KBNAME_MAPPING_INDEX, mappings=es_mapping.uk_mappings)  # 确保 KBNAME_MAPPING_INDEX 已创建
-        kb_info = es_ops.get_uk_kb_info(userId, kb_name)
+        kb_info = kb_info_ops.get_uk_kb_info(userId, kb_name)
         logger.info(f"当前用户:{userId},知识库:{kb_name}, kb_info: {kb_info}")
         result = {
             "code": 0,
@@ -290,7 +234,7 @@ def list_kb_names():
         is_exists = es_ops.create_index_if_not_exists(index_name, mappings=es_mapping.mappings)
         # ******** 先检查 是否有新建 index ***********
         # userId_kb_names = es_ops.get_kb_name_list(index_name) # 不使用此方式
-        userId_kb_names = es_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
+        userId_kb_names = kb_info_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
         logger.info(f"/rag/kn/list_kb_names:用户{index_name}共有{len(userId_kb_names)}个知识库")
         result = {
             "code": 0,
@@ -323,9 +267,9 @@ def list_file_names():
     kb_id = data.get("kb_id")
     try:
         if not kb_id:  # 如果没有指定 kb_id，则从映射表中获取
-            kb_id = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+            kb_id = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         # **************** 校验 kb_name 是否已经初始化过 ****************
-        userId_kb_ids = es_ops.get_uk_kb_id_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
+        userId_kb_ids = kb_info_ops.get_uk_kb_id_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
         if kb_id not in userId_kb_ids:
             result = {
                 "code": 1,
@@ -370,7 +314,7 @@ def list_file_names_after_filtering():
     filtering_conditions = data.get("filtering_conditions")
     try:
         if not kb_id:  # 如果没有指定 kb_id，则从映射表中获取
-            kb_id = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+            kb_id = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(
             f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_id为:{kb_id}, filtering_conditions: {filtering_conditions}")
 
@@ -415,7 +359,7 @@ def list_file_download_links():
     kb_id = data.get("kb_id")
     try:
         if not kb_id:  # 如果没有指定 kb_id，则从映射表中获取
-            kb_id = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+            kb_id = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         file_names = es_ops.get_file_download_link_list(index_name, kb_id)
         logger.info(f"用户{index_name}的知识库{kb_id}共有{len(file_names)}个文件的下载链接")
         result = {
@@ -456,13 +400,13 @@ def es_knn_search():
     filter_file_name_list = data.get("filter_file_name_list", [])
     metadata_filtering_conditions = data.get("metadata_filtering_conditions", [])
     kb_id_2_kb_name = {}
-    embedding_model_id = es_ops.get_uk_kb_emb_model_id(userId, display_kb_names[0])
+    embedding_model_id = kb_info_ops.get_uk_kb_emb_model_id(userId, display_kb_names[0])
     logger.info(f"用户:{index_name},请求查询的kb_names为:{display_kb_names},embedding_model_id:{embedding_model_id}")
     logger.info(f"用户请求的query为:{query}")
     try:
         # ============= 先检查 kb_names 是不是都存在 =============
         # exists_kb_names = es_ops.get_kb_name_list(index_name) # 不使用
-        exists_kb_names = es_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
+        exists_kb_names = kb_info_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
         filtering_conditions = {}
         for condition in metadata_filtering_conditions:
             kb_name = condition["filtering_kb_name"]
@@ -479,7 +423,7 @@ def es_knn_search():
                 logger.info(f"\n向量库检索的接口返回结果为：{jsonarr}")
                 return jsonarr
             # ======== kb_name 是存在的，则往 kb_names 里添加=======
-            kb_id = es_ops.get_uk_kb_id(userId, kb_name)
+            kb_id = kb_info_ops.get_uk_kb_id(userId, kb_name)
             kb_names.append(kb_id)  # 从映射表中获取 kb_id ，这是真正的名字
             kb_id_2_kb_name[kb_id] = kb_name
             if kb_name in filtering_conditions:
@@ -548,7 +492,7 @@ def del_kb():
     file_index_name = 'file_control_' + index_name
     community_report_name = 'community_report_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         es_result = es_ops.delete_data_by_kbname(index_name, kb_name)
         es_cc_result = es_ops.delete_data_by_kbname(content_index_name, kb_name)  # 主控表也需要删除
         es_file_result = es_ops.delete_data_by_kbname(file_index_name, kb_name)
@@ -598,7 +542,7 @@ def del_files():
     file_index_name = 'file_control_' + index_name
 
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
 
         # # =============== 一步删除，不使用 ===================
         # es_result = es_ops.delete_data_by_kbname_file_names(index_name, kb_name, file_names)
@@ -665,7 +609,7 @@ def get_content_list():
     search_after = data.get("search_after")
     content_type = data.get("content_type", "text")
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(
             f"用户:{userId},请求的kb_name为:{kb_name},file_name:{file_name},page_size:{page_size},search_after:{search_after}")
         searched_index_name = ""
@@ -711,7 +655,7 @@ def get_child_content_list():
     file_name = data.get("file_name")
     chunk_id = data.get("chunk_id")
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(
             f"用户:{userId},请求的kb_name为:{kb_name},file_name:{file_name},chunk_id:{chunk_id}")
         content_result = es_ops.get_child_contents(index_name, kb_name, chunk_id)
@@ -743,7 +687,7 @@ def update_child_chunk():
     userId = data.get("userId")
     index_name = INDEX_NAME_PREFIX + userId
     display_kb_name = data.get("kb_name")  # 显示的名字
-    embedding_model_id = es_ops.get_uk_kb_emb_model_id(userId, display_kb_name)
+    embedding_model_id = kb_info_ops.get_uk_kb_emb_model_id(userId, display_kb_name)
     snippet_index_name = SNIPPET_INDEX_NAME_PREFIX + userId.replace('-', '_')
     chunk_id = data.get("chunk_id")
     child_chunk = data.get("child_chunk")
@@ -754,11 +698,11 @@ def update_child_chunk():
         index_update_data = {
             "embedding_content": child_content,
         }
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name}, chunk_id: {chunk_id}, "
                     f"chunk_current_num: {chunk_current_num}, child_chunk: {child_chunk}")
 
-        res = es_ops.get_embs([child_content], embedding_model_id=embedding_model_id)
+        res = emb_util.get_embs([child_content], embedding_model_id=embedding_model_id)
         dense_vector_dim = len(res["result"][0]["dense_vec"]) if res["result"] else 1024
         field_name = f"q_{dense_vector_dim}_content_vector"
         if dense_vector_dim == 1024:
@@ -811,7 +755,7 @@ def update_file_metas():
     update_datas = data.get("update_datas")
     file_index_name = 'file_control_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name}, update_datas: {update_datas}")
 
         # 兼容老版本，没有file index的需要创建
@@ -844,7 +788,7 @@ def batch_delete_chunks():
     content_index_name = 'content_control_' + index_name
     snippet_index_name = SNIPPET_INDEX_NAME_PREFIX + userId.replace('-', '_')
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(
             f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, chunk_ids: {chunk_ids}")
 
@@ -905,7 +849,7 @@ def delete_child_chunks():
     snippet_index_name = SNIPPET_INDEX_NAME_PREFIX + userId.replace('-', '_')
 
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(
             f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, "
             f"chunk_id: {chunk_id}, chunk_current_num: {chunk_current_num}, "
@@ -963,7 +907,7 @@ def update_chunk_labels():
     labels = data.get("labels")
     content_index_name = 'content_control_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(
             f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, chunk_id: {chunk_id}, labels: {labels}")
 
@@ -999,7 +943,7 @@ def get_content_by_ids():
     content_type = data.get("content_type", "text")
     try:
         if not kb_id:  # 如果没有传入 kb_id,则从映射表中获取
-            kb_id = es_ops.get_uk_kb_id(userId, display_kb_name)
+            kb_id = kb_info_ops.get_uk_kb_id(userId, display_kb_name)
         logger.info(
             f"用户:{userId},请求的kb_name为:{kb_id},content_ids:{content_ids}")
         searched_index_name = ""
@@ -1047,7 +991,7 @@ def update_content_status():
     on_off_switch = data.get("on_off_switch", -1)
     content_index_name = 'content_control_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(
             f"用户:{userId},请求的kb_name为:{kb_name},file_name:{file_name},content_id:{content_id},status:{status},on_off_switch:{on_off_switch}")
         result = es_ops.update_cc_content_status(content_index_name, kb_name, file_name, content_id, status,
@@ -1079,7 +1023,7 @@ def get_content_status():
     content_id_list = data.get("content_id_list")
     content_index_name = 'content_control_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(f"用户:{userId},请求的kb_name为:{kb_name},content_id_list:{content_id_list}")
         useful_content_id_list = es_ops.get_cc_content_status(content_index_name, kb_name, content_id_list)
         result = {'code': 0, 'message': 'success', 'data': {'useful_content_id_list': useful_content_id_list}}
@@ -1109,7 +1053,7 @@ def get_kb_id():
     kb_name = data.get("kb_name")
     logger.info(f"用户:{userId},请求的kb_name为:{kb_name}")
     try:
-        kb_id = es_ops.get_uk_kb_id(userId, kb_name)
+        kb_id = kb_info_ops.get_uk_kb_id(userId, kb_name)
         result = {'code': 0, 'message': 'success', 'data': {'kb_id': kb_id}}
         jsonarr = json.dumps(result, ensure_ascii=False)
         logger.info(f"当前用户:{userId},知识库:{kb_name},获取知识库映射的 kb_id接口返回结果为：{jsonarr}")
@@ -1136,7 +1080,7 @@ def update_uk_kb_name():
     new_kb_name = data.get("new_kb_name")
     logger.info(f"用户:{userId},请求的ole_kb_name为:{old_kb_name},请求的new_kb_name为:{new_kb_name}")
     try:
-        result = es_ops.update_uk_kb_name(userId, old_kb_name, new_kb_name)
+        result = kb_info_ops.update_uk_kb_name(userId, old_kb_name, new_kb_name)
         jsonarr = json.dumps(result, ensure_ascii=False)
         logger.info(f"当前用户:{userId},{old_kb_name},{new_kb_name},更新uk映射表知识库名接口返回结果为：{jsonarr}")
         return jsonarr
@@ -1149,15 +1093,6 @@ def update_uk_kb_name():
         jsonarr = json.dumps(result, ensure_ascii=False)
         logger.info(f"当前用户:{userId},{old_kb_name},{new_kb_name},更新uk映射表知识库名接口返回结果为：{jsonarr}")
         return jsonarr
-
-
-@app.route('/es/test', methods=['GET', 'POST'])
-def test():
-    data = request.get_json()
-    logger.info(f"request: /es/test , data:{data}")
-    cluster_health = es_ops.get_health()
-    response = json.dumps({'code': 200, 'msg': 'Success', 'result': cluster_health}, indent=4, ensure_ascii=False)
-    return Response(response, mimetype='application/json', status=200)
 
 
 # ***************** 老的 ES snippet API servers **********************
@@ -1179,7 +1114,7 @@ def snippet_bulk_add():
     try:
         # ========= 往里面传入的 kb_name是真正指代的 kb_id =======
         if not kb_id:  # 如果没有传入 kb_id,则从映射表中获取
-            kb_id = es_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
+            kb_id = kb_info_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
         es_ops.create_index_if_not_exists(index_name, mappings=es_mapping.snippet_mappings)
         result = es_ops.snippet_bulk_add_index_data(index_name, kb_id, doc_list)
         response = json.dumps({'code': 200, 'msg': 'Success', 'result': result}, indent=4, ensure_ascii=False)
@@ -1205,7 +1140,7 @@ def add_file():
     file_index_name = 'file_control_' + index_name
 
     try:
-        kb_name = es_ops.get_uk_kb_id(user_id, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(user_id, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(
             f"用户:{user_id},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, file_meta: {file_meta}")
 
@@ -1240,7 +1175,7 @@ def allocate_chunks():
     file_index_name = 'file_control_' + index_name
     report_index_name = 'community_report_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(user_id, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(user_id, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(
             f"用户:{user_id},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, insert chunk count: {count}")
 
@@ -1280,7 +1215,7 @@ def allocate_child_chunks():
     count = data.get("count")
     content_index_name = 'content_control_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(user_id, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = kb_info_ops.get_uk_kb_id(user_id, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(
             f"用户:{user_id},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, insert chunk count: {count}")
 
@@ -1322,7 +1257,7 @@ def snippet_search():
     kb_id_2_kb_name = {}
     try:
         # ========= 往里面传入的 kb_name是真正指代的 kb_id =======
-        kb_id = es_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
+        kb_id = kb_info_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
         kb_id_2_kb_name[kb_id] = kb_name
 
         final_conditions = []
@@ -1380,7 +1315,7 @@ def keyword_search():
     filter_file_name_list = data.get('filter_file_name_list', [])
     metadata_filtering_conditions = data.get('metadata_filtering_conditions', [])
     try:
-        kb_id = es_ops.get_uk_kb_id(user_id, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_id = kb_info_ops.get_uk_kb_id(user_id, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
 
         final_conditions = []
         for condition in metadata_filtering_conditions:
@@ -1435,17 +1370,17 @@ def snippet_rescore():
     search_by = data.get('search_by', "snippet")
     search_list = data.get('search_list', [])
     display_kb_names = data.get("kb_names")
-    embedding_model_id = es_ops.get_uk_kb_emb_model_id(user_id, display_kb_names[0])
+    embedding_model_id = kb_info_ops.get_uk_kb_emb_model_id(user_id, display_kb_names[0])
     logger.info(f"用户:{index_name},请求查询的kb_names为:{display_kb_names},embedding_model_id:{embedding_model_id}")
     kb_id_2_kb_name = {}
     try:
         for kb_name in display_kb_names:
-            kb_id = es_ops.get_uk_kb_id(data.get('user_id'), kb_name)
+            kb_id = kb_info_ops.get_uk_kb_id(data.get('user_id'), kb_name)
             kb_id_2_kb_name[kb_id] = kb_name
         result = es_ops.rescore_bm25_score(index_name, query, search_by, search_list)
         search_list = result["search_list"]
         bm25_scores = result["scores"]
-        cosine_scores = es_ops.calculate_cosine(query, search_list, embedding_model_id)
+        cosine_scores = emb_util.calculate_cosine(query, search_list, embedding_model_id)
         logger.info(f"rescore bm25_scores: {bm25_scores}, cosine_scores: {cosine_scores}")
 
         def normalize_to_01(scores):
@@ -1500,7 +1435,7 @@ def search_title_list():
     kb_id_2_kb_name = {}
     try:
         # ========= 往里面传入的 kb_name是真正指代的 kb_id =======
-        kb_id = es_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
+        kb_id = kb_info_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
         kb_id_2_kb_name[kb_id] = kb_name
         result = es_ops.search_text_title_list(index_name, kb_id, query, top_k, min_score)
         response = json.dumps({'code': 200, 'msg': 'Success', 'result': result}, indent=4, ensure_ascii=False)
@@ -1553,7 +1488,7 @@ def snippet_delete_doc_by_kbname_title():
     title = data.get('title')
     try:
         # ========= 往里面传入的 kb_name是真正指代的 kb_id =======
-        kb_id = es_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
+        kb_id = kb_info_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
         status = es_ops.delete_data_by_kbname_title(index_name, kb_id, title)
         response = json.dumps({'code': 200, 'msg': 'Success', 'result': status}, indent=4, ensure_ascii=False)
         logger.info("delete_doc_by_title response: %s", response)
@@ -1579,7 +1514,7 @@ def snippet_delete_index_kb_name():
     kb_name = data.get('kb_name')
     try:
         # ========= 往里面传入的 kb_name是真正指代的 kb_id =======
-        kb_id = es_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
+        kb_id = kb_info_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
         status = es_ops.delete_data_by_kbname(index_name, kb_id)
         response = json.dumps({'code': 200, 'msg': 'Success', 'result': status}, indent=4, ensure_ascii=False)
         logger.info("delete_index response: %s", response)
@@ -1602,11 +1537,11 @@ def add_community_reports_data():
     user_id = data.get("userId")
     kb_name = data.get("kb_name")
     kb_id = data.get("kb_id")
-    embedding_model_id = es_ops.get_uk_kb_emb_model_id(user_id, kb_name)
+    embedding_model_id = kb_info_ops.get_uk_kb_emb_model_id(user_id, kb_name)
     doc_list = data.get("data")
     try:
         if not kb_id:  # 如果没有传入 kb_id,则从映射表中获取
-            kb_id = es_ops.get_uk_kb_id(user_id, kb_name)  # 从映射表中获取 kb_id ,添加往里传 kb_id
+            kb_id = kb_info_ops.get_uk_kb_id(user_id, kb_name)  # 从映射表中获取 kb_id ,添加往里传 kb_id
         if not kb_id:  # 如果映射表中没有，则返回错误
             raise RuntimeError(f"{kb_name}知识库不存在")
 
@@ -1619,7 +1554,7 @@ def add_community_reports_data():
 
         # ========= 将 embedding_content 编码好向量 =============
         for batch_doc in batch_list(doc_list, batch_size=EMBEDDING_BATCH_SIZE):
-            res = es_ops.get_embs([x["embedding_content"] for x in batch_doc], embedding_model_id=embedding_model_id)
+            res = emb_util.get_embs([x["embedding_content"] for x in batch_doc], embedding_model_id=embedding_model_id)
             dense_vector_dim = len(res["result"][0]["dense_vec"]) if res["result"] else 1024
             field_name = f"q_{dense_vector_dim}_content_vector"
 
@@ -1663,7 +1598,7 @@ def del_community_reports():
 
     try:
         if not kb_id:  # 如果没有传入 kb_id,则从映射表中获取
-            kb_id = es_ops.get_uk_kb_id(user_id, kb_name)  # 从映射表中获取 kb_id ,添加往里传 kb_id
+            kb_id = kb_info_ops.get_uk_kb_id(user_id, kb_name)  # 从映射表中获取 kb_id ,添加往里传 kb_id
         if not kb_id:  # 如果映射表中没有，则返回错误
             raise RuntimeError(f"{kb_name}知识库不存在")
 
@@ -1716,16 +1651,16 @@ def search_community_reports():
     query = data.get("question")
     min_score = data.get("threshold", 0)
     kb_id_2_kb_name = {}
-    embedding_model_id = es_ops.get_uk_kb_emb_model_id(userId, display_kb_names[0])
+    embedding_model_id = kb_info_ops.get_uk_kb_emb_model_id(userId, display_kb_names[0])
     logger.info(f"用户:{index_name},请求查询的kb_names为:{display_kb_names},embedding_model_id:{embedding_model_id}")
     logger.info(f"用户请求的query为:{query}")
     try:
-        exists_kb_names = es_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
+        exists_kb_names = kb_info_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
         for kb_name in display_kb_names:
             if kb_name not in exists_kb_names:
                 raise RuntimeError(f"用户:{index_name}里,{kb_name}知识库不存在")
             # ======== kb_name 是存在的，则往 kb_names 里添加=======
-            kb_id = es_ops.get_uk_kb_id(userId, kb_name)
+            kb_id = kb_info_ops.get_uk_kb_id(userId, kb_name)
             kb_names.append(kb_id)  # 从映射表中获取 kb_id ，这是真正的名字
             kb_id_2_kb_name[kb_id] = kb_name
 
@@ -1758,9 +1693,248 @@ def search_community_reports():
         logger.info(f"当前用户:{userId},知识库:{kb_names},query:{query},向量库检索的接口返回结果为：{jsonarr}")
         return jsonarr
 
+#-------------------------------       问答库       ------------------------------------
+@app.route('/api/v1/rag/es/init_QA_base', methods=['POST'])
+def init_qa_base():
+    """ 初始化 init_qa 接口"""
+    logger.info("--------------------------启动问答库初始化---------------------------\n")
+    data = request.get_json()
+    user_id = data.get("userId")
+    qa_index_name = get_qa_index_name(user_id)
+    qa_base_name = data.get("QABase")
+    qa_base_id = data["QAId"]
+    embedding_model_id = data["embedding_model_id"]
+    try:
+        if not qa_base_id:
+            qa_base_id = kb_info_ops.get_uk_kb_id(user_id, qa_base_name)
+        logger.info(f"用户:{user_id},问答库:{qa_base_name},qa_base_id:{qa_base_id}, embedding_model_id: {embedding_model_id}")
 
-# ********************* 重启服务后，检查uk映射表索引的mappping，进行一些处理 *********************
-# es_ops.check_status() # 不使用此更新。
+        judge_time = time.time()
+
+        es_ops.create_index_if_not_exists(KBNAME_MAPPING_INDEX, mappings=es_mapping.uk_mappings)
+        es_ops.create_index_if_not_exists(qa_index_name, mappings=es_mapping.qa_mappings)
+        qa_base_names = kb_info_ops.get_uk_qa_name_list(user_id)  # 从映射表中获取
+        logger.info(f"当前用户:{user_id},共有问答库：{len(qa_base_names)}个，分别为{qa_base_names}")
+        judge_time = time.time() - judge_time
+        logger.info(f"--------------------------查询qa_map时间:{judge_time}---------------------------\n")
+        if qa_base_name in qa_base_names:
+            raise RuntimeError(f"已存在同名问答库{qa_base_name}")
+
+        utc_now = datetime.utcnow()
+        formatted_time = utc_now.strftime('%Y-%m-%d %H:%M:%S')
+        uk_data = [
+            {"index_name": qa_index_name, "userId": user_id, "kb_name": qa_base_name,
+             "creat_time": formatted_time, "kb_id": qa_base_id, "embedding_model_id": embedding_model_id,
+             "is_qa": True}
+        ]
+        kb_info_ops.bulk_add_uk_index_data(KBNAME_MAPPING_INDEX, uk_data)
+        # ====== 新建完成，需要获取一下 kb_id,看看是否新建成功 ======
+        save_qa_id = kb_info_ops.get_uk_kb_id(user_id, qa_base_name)
+        if save_qa_id != qa_base_id:  # 新建失败，返回错误
+            raise RuntimeError("ini问答库失败，ES写入失败")
+
+        # 新建成功，返回
+        logger.info(f"当前用户:{user_id},问答库:{qa_base_name},save_qa_id:{save_qa_id}")
+        result = {
+            "code": 0,
+            "message": "success"
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{user_id},问答库:{qa_base_name},ini知识库的接口返回结果为：{jsonarr}")
+        return jsonarr
+    except Exception as e:
+        result = {
+            "code": 1,
+            "message": str(e)
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{user_id},问答库:{qa_base_name},ini知识库的接口返回结果为：{jsonarr}")
+        return jsonarr
+
+
+
+@app.route('/api/v1/rag/es/delete_QA_base', methods=['POST'])
+def del_qa_base():
+    logger.info("--------------------------启动问答库删除---------------------------\n")
+    data = request.get_json()
+    user_id = data.get("userId")
+    qa_index_name = get_qa_index_name(user_id)
+    qa_base_name = data.get("QABase")
+    qa_base_id = data["QAId"]
+    try:
+        if not qa_base_id:
+            qa_base_id = kb_info_ops.get_uk_kb_id(user_id, qa_base_name)
+        logger.info(f"用户:{user_id},问答库:{qa_base_name},qa_base_id:{qa_base_id}")
+
+        es_result = qa_ops.delete_data_by_qa_info(qa_index_name, qa_base_name, qa_base_id)
+        if not es_result["success"]:
+            logger.info(f"当前用户:{user_id},问答库:{qa_base_name}, qa_index_name: {qa_index_name}, 问答库删除时发生错误：{es_result}")
+            raise RuntimeError(es_result.get("error", ""))
+
+        es_uk_result = es_ops.delete_uk_data_by_kbname(user_id, qa_base_name)
+        if not es_uk_result["success"]:
+            logger.info(f"当前用户:{user_id},问答库:{qa_base_name}, uk_index_name: {KBNAME_MAPPING_INDEX}, 问答库删除时发生错误：{es_uk_result}")
+            raise RuntimeError(es_uk_result.get("error", ""))
+
+        result = {
+            "code": 0,
+            "message": "success"
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(
+            f"当前用户:{user_id},问答库:{qa_base_name},问答库删除的接口返回结果为：{jsonarr},{es_result},{es_uk_result}")
+        return jsonarr
+
+    except Exception as e:
+        result = {
+            "code": 1,
+            "message": str(e)
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{user_id},问答库:{qa_base_name},问答库删除的接口返回结果为：{jsonarr}")
+        return jsonarr
+
+
+
+@app.route('/api/v1/rag/es/add-QAs', methods=['POST'])
+def add_qa_data():
+    """ 往 ES 中建向量索引数据"""
+    logger.info("--------------------------启动问答库数据添加---------------------------\n")
+    data = request.get_json()
+    user_id = data.get("userId")
+    qa_index_name = get_qa_index_name(user_id)
+    qa_base_name = data.get("QABase")
+    qa_base_id = data["QAId"]
+    embedding_model_id = kb_info_ops.get_uk_kb_emb_model_id(user_id, qa_base_name)
+    qa_list = data.get("data")
+
+    try:
+        if not qa_base_id:
+            qa_base_id = kb_info_ops.get_uk_kb_id(user_id, qa_base_name)
+        logger.info(f"用户:{user_id},问答库:{qa_base_name},qa_base_id:{qa_base_id}")
+
+        # ========= 将 embedding_content 编码好向量 =============
+        for batch_doc in batch_list(qa_list, batch_size=EMBEDDING_BATCH_SIZE):
+            res = emb_util.get_embs([x["question"] for x in batch_doc], embedding_model_id=embedding_model_id)
+            dense_vector_dim = len(res["result"][0]["dense_vec"]) if res["result"] else 1024
+            field_name = f"q_{dense_vector_dim}_content_vector"
+
+            for i, x in enumerate(batch_doc):
+                if len(batch_doc) != len(res["result"]):
+                    raise RuntimeError(f"Error getting embeddings:{batch_doc}")
+                x[field_name] = res["result"][i]["dense_vec"]
+        # ========= 将 embedding_content 编码好向量 =============
+        es_result = qa_ops.bulk_add_index_data(qa_index_name, qa_base_name, qa_list)
+        if not es_result["success"]:
+            raise RuntimeError(es_result.get("error", ""))
+
+        result = {
+            "code": 0,
+            "message": "success"
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{user_id},问答库:{qa_base_name},add的接口返回结果为：{jsonarr}")
+        return jsonarr
+    except Exception as e:
+        result = {
+            "code": 1,
+            "message": str(e)
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{user_id},问答库:{qa_base_name},add的接口返回结果为：{jsonarr}")
+        return jsonarr
+
+
+@app.route('/api/v1/rag/es/batch-delete-QAs', methods=['POST'])
+def batch_delete_qas():
+    logger.info("--------------------------根据qa pair ids 删除问答对---------------------------\n")
+    data = request.get_json()
+    user_id = data.get("userId")
+    qa_index_name = get_qa_index_name(user_id)
+    qa_base_name = data.get("QABase")
+    qa_base_id = data["QAId"]
+    qa_pair_ids = data["QAPairIds"]
+    try:
+        if not qa_base_id:
+            qa_base_id = kb_info_ops.get_uk_kb_id(user_id, qa_base_name)
+        logger.info(f"用户:{user_id},问答库:{qa_base_name},qa_base_id:{qa_base_id}, qa_pair_ids: {qa_pair_ids}")
+
+        es_result = qa_ops.delete_qa_ids(qa_index_name, qa_base_name, qa_base_id, qa_pair_ids)
+        if not es_result["success"]:
+            logger.info(
+                f"当前用户:{user_id},问答库:{qa_base_name}, 问答对删除时发生错误：{es_result}")
+            raise RuntimeError(es_result.get("error", ""))
+
+        result = {
+            "code": 0,
+            "message": "success",
+            "data": {
+                "success_count": es_result["deleted"]
+            }
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{user_id},问答库:{qa_base_name}, 问答对删除的接口返回结果为：{jsonarr}")
+        return jsonarr
+    except Exception as e:
+        result = {
+            "code": 1,
+            "message": str(e),
+            "data": {
+                "success_count": 0
+            }
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{user_id},问答库:{qa_base_name}, 问答对删除的接口返回结果为：{jsonarr}")
+        return jsonarr
+
+
+@app.route('/api/v1/rag/es/update_QA', methods=['POST'])
+def update_qa():
+    """ 根据id更新问答片段状态 """
+    logger.info("--------------------------根据qa pair id 更新问答对--------------------------\n")
+    data = request.get_json()
+    user_id = data.get("userId")
+    qa_index_name = get_qa_index_name(user_id)
+    qa_base_name = data.get("QABase")
+    qa_base_id = data["QAId"]
+    qa_pair_id = data["QAPairId"]
+    data = data["data"]
+    try:
+        if not qa_base_id:
+            qa_base_id = kb_info_ops.get_uk_kb_id(user_id, qa_base_name)
+        logger.info(f"用户:{user_id},问答库:{qa_base_name},qa_base_id:{qa_base_id}, qa_pair_id: {qa_pair_id}, data:{data}")
+
+        if "question" in data:
+            embedding_model_id = kb_info_ops.get_uk_kb_emb_model_id(user_id, qa_base_name)
+            res = emb_util.get_embs([data["question"]], embedding_model_id=embedding_model_id)
+            if len(res["result"]) != 1:
+                raise RuntimeError(f"Error getting embeddings:{data}")
+            dense_vector_dim = len(res["result"][0]["dense_vec"]) if res["result"] else 1024
+            field_name = f"q_{dense_vector_dim}_content_vector"
+            data[field_name] = res["result"][0]["dense_vec"]
+        es_result = qa_ops.update_qa_data(qa_index_name, qa_base_name, qa_pair_id, data)
+        if not es_result["success"]:
+            logger.info(f"当前用户:{user_id},问答库:{qa_base_name}, 问答对更新时发生错误：{es_result}")
+            raise RuntimeError(es_result.get("error", ""))
+
+        result = {
+            "code": 0,
+            "message": "success"
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(
+            f"当前用户:{user_id},问答库:{qa_base_name},qa_pair_id:{qa_pair_id}, 更新的接口返回结果为：{jsonarr}")
+        return jsonarr
+    except Exception as e:
+        result = {
+            "code": 1,
+            "message": str(e)
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(
+            f"当前用户:{user_id},问答库:{qa_base_name},qa_pair_id:{qa_pair_id}, 更新的接口返回结果为：{jsonarr}")
+        return jsonarr
+
 
 if __name__ == '__main__':
     app.run()  # debug=True

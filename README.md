@@ -255,16 +255,16 @@ To help you quickly get started with this project, we strongly recommend that yo
 
 ### &#x1F4F0; TO DO LIST
 
-- [ ]  Multimodal model access
-- [ ]  Multimodal file parsing
-- [ ]  Support importing knowledge bases from APIs and databases
-- [ ]  General-purpose agents
-- [ ]  A2A protocol
-- [ ]  Multi-agent
-- [ ]  Agent and model evaluation
-- [ ]  Agent monitoring statistics and Trace tracking
-- [ ]  Model experience
-- [ ]  Prompt engineering
+- [ ] Multimodal model access
+- [ ] Multimodal file parsing
+- [ ] Support importing knowledge bases from APIs and databases
+- [ ] General-purpose agents
+- [ ] A2A protocol
+- [ ] Multi-agent
+- [ ] Agent and model evaluation
+- [ ] Agent monitoring statistics and Trace tracking
+- [ ] Model experience
+- [ ] Prompt engineering
 
 ------
 

@@ -30,8 +30,8 @@
             <div class="knowledge-meta">
               <span class="meta-text">{{
                 item.share
-                  ? $t("knowledgeSelect.public")
-                  : $t("knowledgeSelect.private")
+                  ? $t("knowledgeManage.public")
+                  : $t("knowledgeManage.private")
               }}</span>
               <span v-if="item.share" class="meta-text">{{
                 item.orgName

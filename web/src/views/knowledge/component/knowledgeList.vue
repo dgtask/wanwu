@@ -6,7 +6,11 @@
           <div class="create-img-wrap">
             <img
               class="create-type"
-              src="@/assets/imgs/create_knowledge.svg"
+              :src="
+                category === 0
+                  ? require('@/assets/imgs/create_knowledge.svg')
+                  : require('@/assets/imgs/create_qa.png')
+              "
               alt=""
             />
             <img
@@ -16,7 +20,11 @@
             />
             <div class="create-filter"></div>
           </div>
-          <span>创建知识库</span>
+          <span>{{
+            category === 0
+              ? $t("knowledgeManage.createKnowledge")
+              : $t("knowledgeManage.createQaDatabase")
+          }}</span>
         </div>
       </div>
       <template v-if="listData && listData.length">
@@ -31,7 +39,14 @@
               class="logo"
               :src="require('@/assets/imgs/knowledgeIcon.png')"
             />
-            <p :class="['smartDate']">{{ n.docCount || 0 }}个文档</p>
+            <p :class="['smartDate']">
+              {{ n.docCount || 0
+              }}{{
+                category === 0
+                  ? $t("knowledgeManage.docCountUnit")
+                  : $t("knowledgeManage.qaCountUnit")
+              }}
+            </p>
           </div>
           <div class="info rl">
             <p class="name" :title="n.name">
@@ -67,13 +82,11 @@
               :content="n.orgName"
               placement="right-start"
             >
-              <span style="margin-right: 52px; color: #999; font-size: 12px">
-                {{
-                  n.orgName.length > 10
-                    ? n.orgName.substring(0, 10) + "..."
-                    : n.orgName
-                }}
-              </span>
+              <span style="margin-right: 52px; color: #999; font-size: 12px">{{
+                n.orgName.length > 10
+                  ? n.orgName.substring(0, 10) + "..."
+                  : n.orgName
+              }}</span>
             </el-tooltip>
             <div v-if="n.share" class="publishType" style="right: 22px">
               <span v-if="n.share" class="publishType-tag">
@@ -93,9 +106,8 @@
                 <el-dropdown-item
                   command="edit"
                   v-if="[30].includes(n.permissionType)"
+                  >{{ $t("common.button.edit") }}</el-dropdown-item
                 >
-                  {{ $t("common.button.edit") }}
-                </el-dropdown-item>
                 <el-dropdown-item
                   command="delete"
                   v-if="[30].includes(n.permissionType)"
@@ -132,13 +144,18 @@ import tagDialog from "./tagDialog.vue";
 import PowerManagement from "./power/index.vue";
 import { mapActions } from "vuex";
 export default {
-  components:{tagDialog, PowerManagement},
-  props:{
-    appData:{
-      type:Array,
-      required:true,
-      default:[]
-    }
+  components: { tagDialog, PowerManagement },
+  props: {
+    appData: {
+      type: Array,
+      required: true,
+      default: [],
+    },
+    category: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
   },
   watch: {
     appData: {
@@ -154,7 +171,7 @@ export default {
       apptype: AppType,
       basePath: this.$basePath,
       listData: [],
-      title: "创建标签",
+      title: this.$t("knowledgeManage.createTag"),
     };
   },
 
@@ -175,7 +192,7 @@ export default {
     },
     addTag(id, n) {
       if ([0].includes(n.permissionType)) {
-        this.$message.warning(this.$t("knowledgeSelect.noPermission"));
+        this.$message.warning(this.$t("knowledgeSelect.noOperationPermission"));
         return;
       }
       this.$nextTick(() => {
@@ -201,40 +218,51 @@ export default {
     editItem(row) {
       this.$emit("editItem", row);
     },
-    relodaData(){
-      this.$emit('reloadData');
+    relodaData(category) {
+      this.$emit("reloadData", category);
     },
-    deleteItem(knowledgeId){
-      this.$confirm(this.$t('knowledgeManage.delKnowledgeTips'), this.$t('knowledgeManage.tip'), {
-        confirmButtonText: this.$t('common.confirm.confirm'),
-        cancelButtonText: this.$t('common.confirm.cancel'),
-        type: "warning",
-        beforeClose:(action, instance, done) =>{
-          if(action === 'confirm'){
-            instance.confirmButtonLoading = true;
-            delKnowledgeItem({knowledgeId})
-              .then(res =>{
-                if(res.code === 0){
-                  this.$message.success(this.$t('knowledgeManage.operateSuccess'));
-                  this.$emit('reloadData')
-                }
-              })
-              .catch(() => {})
-              .finally(() =>{
-                done();
-                setTimeout(() => {
-                  instance.confirmButtonLoading = false;
-                }, 300);
-              })
-          }else{
-            done()
-          }
+    deleteItem(knowledgeId) {
+      this.$confirm(
+        this.$t("knowledgeManage.delKnowledgeTips"),
+        this.$t("knowledgeManage.tip"),
+        {
+          confirmButtonText: this.$t("common.confirm.confirm"),
+          cancelButtonText: this.$t("common.confirm.cancel"),
+          type: "warning",
+          beforeClose: (action, instance, done) => {
+            if (action === "confirm") {
+              instance.confirmButtonLoading = true;
+              delKnowledgeItem({ knowledgeId })
+                .then((res) => {
+                  if (res.code === 0) {
+                    this.$message.success(
+                      this.$t("knowledgeManage.operateSuccess")
+                    );
+                    this.$emit("reloadData", this.category);
+                  }
+                })
+                .catch(() => {})
+                .finally(() => {
+                  done();
+                  setTimeout(() => {
+                    instance.confirmButtonLoading = false;
+                  }, 300);
+                });
+            } else {
+              done();
+            }
+          },
         }
       ).then(() => {});
     },
-    toDocList(n){
-      this.$router.push({path:`/knowledge/doclist/${n.knowledgeId}`});
-      this.setPermissionType(n.permissionType)
+    toDocList(n) {
+      if (this.category === 0) {
+        this.$router.push({ path: `/knowledge/doclist/${n.knowledgeId}` });
+      } else {
+        this.$router.push({ path: `/knowledge/qa/docList/${n.knowledgeId}` });
+      }
+
+      this.setPermissionType(n.permissionType);
     },
     showPowerManagement(knowledgeItem) {
       this.$refs.powerManagement.knowledgeId = knowledgeItem.knowledgeId;

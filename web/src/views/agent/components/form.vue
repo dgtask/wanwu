@@ -1,313 +1,505 @@
 <template>
-<div class="agent-from-content" :class="{ isDisabled: isPublish }">
-  <div class="form-header">
-    <div class="header-left">
-      <span class="el-icon-arrow-left btn" @click="goBack"></span>
-      <div class="basicInfo">
-        <div class="img">
-          <img :src="
+  <div class="agent-from-content" :class="{ isDisabled: isPublish }">
+    <div class="form-header">
+      <div class="header-left">
+        <span class="el-icon-arrow-left btn" @click="goBack"></span>
+        <div class="basicInfo">
+          <div class="img">
+            <img
+              :src="
                 editForm.avatar.path
                   ? `/user/api` + editForm.avatar.path
                   : '@/assets/imgs/bg-logo.png'
-              " />
-        </div>
-        <div class="basicInfo-desc">
-          <span class="basicInfo-title">{{
+              "
+            />
+          </div>
+          <div class="basicInfo-desc">
+            <span class="basicInfo-title">{{
               (editForm.name || $t("agent.form.noInfo")).length > 12
                 ? (editForm.name || $t("agent.form.noInfo")).substring(0, 12) +
                   "..."
                 : editForm.name || $t("agent.form.noInfo")
             }}</span>
-          <span class="el-icon-edit-outline editIcon" @click="editAgent"></span>
-          <LinkIcon type="agent" />
-          <p>{{ editForm.desc || $t("agent.form.noInfo") }}</p>
+            <span
+              class="el-icon-edit-outline editIcon"
+              @click="editAgent"
+            ></span>
+            <LinkIcon type="agent" />
+            <p>{{ editForm.desc || $t("agent.form.noInfo") }}</p>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="header-right">
-      <el-button size="small" type="primary" style="padding: 13px 12px" @click="handlePublishSet">
-        <span class="el-icon-setting"></span>
-        {{ $t("agent.form.publishConfig") }}
-      </el-button>
-      <el-button size="small" type="primary" @click="handlePublish" style="padding: 13px 12px">{{ $t("agent.form.publish")
-          }}<span class="el-icon-arrow-down" style="margin-left: 5px"></span></el-button>
-      <div class="popover-operation" v-if="showOperation">
-        <div>
-          <el-radio :label="'private'" v-model="scope">{{
+      <div class="header-right">
+        <el-button
+          size="small"
+          type="primary"
+          style="padding: 13px 12px"
+          @click="handlePublishSet"
+        >
+          <span class="el-icon-setting"></span>
+          {{ $t("agent.form.publishConfig") }}
+        </el-button>
+        <el-button
+          size="small"
+          type="primary"
+          @click="handlePublish"
+          style="padding: 13px 12px"
+          >{{ $t("agent.form.publish")
+          }}<span class="el-icon-arrow-down" style="margin-left: 5px"></span
+        ></el-button>
+        <div class="popover-operation" v-if="showOperation">
+          <div>
+            <el-radio :label="'private'" v-model="scope">{{
               $t("agent.form.publishType")
             }}</el-radio>
-        </div>
-        <div>
-          <el-radio :label="'organization'" v-model="scope">{{
+          </div>
+          <div>
+            <el-radio :label="'organization'" v-model="scope">{{
               $t("agent.form.publishType1")
             }}</el-radio>
-        </div>
-        <div>
-          <el-radio :label="'public'" v-model="scope">{{
+          </div>
+          <div>
+            <el-radio :label="'public'" v-model="scope">{{
               $t("agent.form.publishType2")
             }}</el-radio>
-        </div>
-        <div class="saveBtn">
-          <el-button size="mini" type="primary" @click="savePublish">{{
+          </div>
+          <div class="saveBtn">
+            <el-button size="mini" type="primary" @click="savePublish">{{
               $t("common.button.save")
             }}</el-button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <!-- 智能体配置 -->
-  <div class="agent_form">
-    <div class="block prompt-box drawer-info">
-      <div class="promptTitle">
-        <h3>{{ $t("agent.form.systemPrompt") }}</h3>
-        <div class="prompt-title-icon">
-          <el-tooltip class="item" effect="dark" :content="$t('agent.form.submitToPrompt')" placement="top-start">
-            <span class="el-icon-folder-add" @click="handleShowPrompt"></span>
-          </el-tooltip>
-          <el-tooltip class="item" effect="dark" :content="$t('tempSquare.promptOptimize')" placement="top-start">
-            <span style="margin-left: 5px" class="el-icon-s-help" @click="showPromptOptimize"></span>
-          </el-tooltip>
-          <el-tooltip class="item" effect="dark" :content="$t('tempSquare.promptCompare')" placement="top-start">
-            <span class="tool-icon" @click="showPromptCompare"><img :src="require('@/assets/imgs/temp-compare.png')" /></span>
-          </el-tooltip>
+    <!-- 智能体配置 -->
+    <div class="agent_form">
+      <div class="block prompt-box drawer-info">
+        <div class="promptTitle">
+          <h3>{{ $t("agent.form.systemPrompt") }}</h3>
+          <div class="prompt-title-icon">
+            <el-tooltip
+              class="item"
+              effect="dark"
+              :content="$t('agent.form.submitToPrompt')"
+              placement="top-start"
+            >
+              <span class="el-icon-folder-add" @click="handleShowPrompt"></span>
+            </el-tooltip>
+            <el-tooltip
+              class="item"
+              effect="dark"
+              :content="$t('tempSquare.promptOptimize')"
+              placement="top-start"
+            >
+              <span
+                style="margin-left: 5px"
+                class="el-icon-s-help"
+                @click="showPromptOptimize"
+              ></span>
+            </el-tooltip>
+            <el-tooltip
+              class="item"
+              effect="dark"
+              :content="$t('tempSquare.promptCompare')"
+              placement="top-start"
+            >
+              <span class="tool-icon" @click="showPromptCompare"
+                ><img :src="require('@/assets/imgs/temp-compare.png')"
+              /></span>
+            </el-tooltip>
+          </div>
         </div>
+        <div class="rl" style="padding: 10px">
+          <el-input
+            class="desc-input"
+            v-model="editForm.instructions"
+            :placeholder="$t('agent.form.promptTips')"
+            type="textarea"
+            show-word-limit
+            :rows="12"
+          ></el-input>
+        </div>
+        <promptTemplate ref="promptTemplate" />
       </div>
-      <div class="rl" style="padding: 10px">
-        <el-input class="desc-input" v-model="editForm.instructions" :placeholder="$t('agent.form.promptTips')" type="textarea" show-word-limit :rows="12"></el-input>
-      </div>
-      <promptTemplate ref="promptTemplate" />
-    </div>
-    <div class="drawer-form">
-      <div class="agnetSet">
-        <h3 class="labelTitle">{{ $t("agent.form.agentConfig") }}</h3>
-        <div class="block prompt-box">
-          <p class="block-title model-title">
-            <span class="label">
-              <img :src="require('@/assets/imgs/require.png')" class="required-label" />
-              {{ $t("agent.form.modelSelect") }}
-            </span>
-            <span class="el-icon-s-operation operation" @click="showModelSet"></span>
-          </p>
-          <div class="rl">
-            <el-select v-model="editForm.modelParams" :placeholder="$t('agent.form.modelSearchPlaceholder')" @visible-change="visibleChange" :loading-text="$t('agent.toolDetail.modelLoadingText')" class="cover-input-icon model-select" :disabled="isPublish" :loading="modelLoading" filterable value-key="modelId" @change="handleModelChange($event)">
-              <el-option class="model-option-item" v-for="item in modleOptions" :key="item.modelId" :value="item.modelId" :label="item.displayName">
-                <div class="model-option-content">
-                  <span class="model-name">{{ item.displayName }}</span>
-                  <div class="model-select-tags" v-if="item.tags && item.tags.length > 0">
-                    <span v-for="(tag, tagIdx) in item.tags" :key="tagIdx" class="model-select-tag">{{ tag.text }}</span>
+      <div class="drawer-form">
+        <div class="agnetSet">
+          <h3 class="labelTitle">{{ $t("agent.form.agentConfig") }}</h3>
+          <div class="block prompt-box">
+            <p class="block-title model-title">
+              <span class="label">
+                <img
+                  :src="require('@/assets/imgs/require.png')"
+                  class="required-label"
+                />
+                {{ $t("agent.form.modelSelect") }}
+              </span>
+              <span
+                class="el-icon-s-operation operation"
+                @click="showModelSet"
+              ></span>
+            </p>
+            <div class="rl">
+              <el-select
+                v-model="editForm.modelParams"
+                :placeholder="$t('agent.form.modelSearchPlaceholder')"
+                @visible-change="visibleChange"
+                :loading-text="$t('agent.toolDetail.modelLoadingText')"
+                class="cover-input-icon model-select"
+                :disabled="isPublish"
+                :loading="modelLoading"
+                filterable
+                value-key="modelId"
+                @change="handleModelChange($event)"
+              >
+                <el-option
+                  class="model-option-item"
+                  v-for="item in modleOptions"
+                  :key="item.modelId"
+                  :value="item.modelId"
+                  :label="item.displayName"
+                >
+                  <div class="model-option-content">
+                    <span class="model-name">{{ item.displayName }}</span>
+                    <div
+                      class="model-select-tags"
+                      v-if="item.tags && item.tags.length > 0"
+                    >
+                      <span
+                        v-for="(tag, tagIdx) in item.tags"
+                        :key="tagIdx"
+                        class="model-select-tag"
+                        >{{ tag.text }}</span
+                      >
+                    </div>
                   </div>
-                </div>
-              </el-option>
-            </el-select>
-            <div class="model-select-tips" v-if="editForm.visionsupport === 'support'">
-              {{ $t("agent.form.visionModelTips") }}
+                </el-option>
+              </el-select>
+              <div
+                class="model-select-tips"
+                v-if="editForm.visionsupport === 'support'"
+              >
+                {{ $t("agent.form.visionModelTips") }}
+              </div>
+            </div>
+          </div>
+          <div class="block prompt-box">
+            <p class="block-title">
+              <img
+                :src="require('@/assets/imgs/require.png')"
+                class="required-label"
+              />
+              {{ $t("agent.form.prologue") }}
+            </p>
+            <div class="rl">
+              <el-input
+                class="desc-input"
+                v-model="editForm.prologue"
+                maxlength="100"
+                :placeholder="$t('agent.form.prologuePlaceholder')"
+                type="textarea"
+              ></el-input>
+              <span class="el-input__count"
+                >{{ editForm.prologue.length }}/100</span
+              >
+            </div>
+          </div>
+          <div class="block recommend-box">
+            <p class="block-title recommend-title">
+              <span>{{ $t("agent.form.recommendQuestion") }}</span>
+              <span @click="addRecommend" class="common-add">
+                <span class="el-icon-plus"></span>
+                <span class="handleBtn">{{ $t("agent.add") }}</span>
+              </span>
+            </p>
+            <div
+              class="recommend-item"
+              v-for="(n, i) in editForm.recommendQuestion"
+              @mouseenter="activeIndex = i"
+              @mouseleave="activeIndex = -1"
+              :key="`${i}rml`"
+            >
+              <el-input
+                class="recommend--input"
+                v-model.lazy="n.value"
+                maxlength="50"
+                :key="`${i}rml`"
+              ></el-input>
+              <span
+                class="el-icon-delete recommend-del"
+                @click="clearRecommend(n, i)"
+                v-if="activeIndex === i"
+              ></span>
             </div>
           </div>
         </div>
-        <div class="block prompt-box">
-          <p class="block-title">
-            <img :src="require('@/assets/imgs/require.png')" class="required-label" />
-            {{ $t("agent.form.prologue") }}
-          </p>
-          <div class="rl">
-            <el-input class="desc-input" v-model="editForm.prologue" maxlength="100" :placeholder="$t('agent.form.prologuePlaceholder')" type="textarea"></el-input>
-            <span class="el-input__count">{{ editForm.prologue.length }}/100</span>
+        <div class="common-box">
+          <div class="block recommend-box">
+            <p class="block-title tool-title">
+              <span>{{ $t("agent.form.linkKnowledge") }}</span>
+              <span>
+                <span class="common-add" @click="showKnowledgeDiglog">
+                  <span class="el-icon-plus"></span>
+                  <span class="handleBtn">{{ $t("agent.add") }}</span>
+                </span>
+                <span class="common-add" @click="showKnowledgeSet">
+                  <span class="el-icon-s-operation"></span>
+                  <span class="handleBtn set">{{
+                    $t("agent.form.config")
+                  }}</span>
+                </span>
+              </span>
+            </p>
+            <div class="rl tool-conent">
+              <div class="tool-right tool">
+                <div class="action-list">
+                  <div
+                    v-for="(n, i) in editForm.knowledgebases"
+                    class="action-item"
+                    :key="'knowledge' + i"
+                  >
+                    <div class="name" style="color: #333">
+                      <span>{{ n.name || n.knowledgeName }}</span>
+                    </div>
+                    <div class="bt">
+                      <el-tooltip
+                        class="item"
+                        effect="dark"
+                        :content="$t('agent.form.metaDataFilter')"
+                        placement="top-start"
+                      >
+                        <span
+                          class="el-icon-setting del"
+                          @click="showMetaSet(n, i)"
+                          style="margin-right: 10px"
+                        ></span>
+                      </el-tooltip>
+                      <span
+                        class="el-icon-delete del"
+                        @click="delKnowledge(i)"
+                      ></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="block recommend-box">
-          <p class="block-title recommend-title">
-            <span>{{ $t("agent.form.recommendQuestion") }}</span>
-            <span @click="addRecommend" class="common-add">
+
+        <div class="block recommend-box tool-box">
+          <p class="block-title tool-title">
+            <span>{{ $t("agent.form.tool") }}</span>
+            <span @click="addTool" class="common-add">
               <span class="el-icon-plus"></span>
               <span class="handleBtn">{{ $t("agent.add") }}</span>
             </span>
           </p>
-          <div class="recommend-item" v-for="(n, i) in editForm.recommendQuestion" @mouseenter="activeIndex = i" @mouseleave="activeIndex = -1" :key="`${i}rml`">
-            <el-input class="recommend--input" v-model.lazy="n.value" maxlength="50" :key="`${i}rml`"></el-input>
-            <span class="el-icon-delete recommend-del" @click="clearRecommend(n, i)" v-if="activeIndex === i"></span>
-          </div>
-        </div>
-      </div>
-      <div class="common-box">
-        <div class="block recommend-box">
-          <p class="block-title tool-title">
-            <span>{{ $t("agent.form.linkKnowledge") }}</span>
-            <span>
-              <span class="common-add" @click="showKnowledgeDiglog">
-                <span class="el-icon-plus"></span>
-                <span class="handleBtn">{{ $t("agent.add") }}</span>
-              </span>
-              <span class="common-add" @click="showKnowledgeSet">
-                <span class="el-icon-s-operation"></span>
-                <span class="handleBtn set">{{
-                    $t("agent.form.config")
-                  }}</span>
-              </span>
-            </span>
-          </p>
           <div class="rl tool-conent">
-            <div class="tool-right tool">
+            <div class="tool-right tool" v-show="allTools.length">
               <div class="action-list">
-                <div v-for="(n, i) in editForm.knowledgebases" class="action-item" :key="'knowledge' + i">
-                  <div class="name" style="color: #333">
-                    <span>{{ n.name || n.knowledgeName }}</span>
-                  </div>
-                  <div class="bt">
-                    <el-tooltip class="item" effect="dark" :content="$t('agent.form.metaDataFilter')" placement="top-start">
-                      <span class="el-icon-setting del" @click="showMetaSet(n, i)" style="margin-right: 10px"></span>
-                    </el-tooltip>
-                    <span class="el-icon-delete del" @click="delKnowledge(i)"></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="block recommend-box tool-box">
-        <p class="block-title tool-title">
-          <span>{{ $t("agent.form.tool") }}</span>
-          <span @click="addTool" class="common-add">
-            <span class="el-icon-plus"></span>
-            <span class="handleBtn">{{ $t("agent.add") }}</span>
-          </span>
-        </p>
-        <div class="rl tool-conent">
-          <div class="tool-right tool" v-show="allTools.length">
-            <div class="action-list">
-              <div class="action-item" v-for="(n, i) in allTools" :key="`${i}ac`">
-                <div class="name">
-                  <div class="toolImg">
-                    <img :src="'/user/api/' + n.avatar.path" v-show="n.avatar && n.avatar.path" />
-                  </div>
-                  <el-tooltip class="item" effect="dark" :content="displayName(n)" placement="top-start">
-                    <span>{{
+                <div
+                  class="action-item"
+                  v-for="(n, i) in allTools"
+                  :key="`${i}ac`"
+                >
+                  <div class="name">
+                    <div class="toolImg">
+                      <img
+                        :src="'/user/api/' + n.avatar.path"
+                        v-show="n.avatar && n.avatar.path"
+                      />
+                    </div>
+                    <el-tooltip
+                      class="item"
+                      effect="dark"
+                      :content="displayName(n)"
+                      placement="top-start"
+                    >
+                      <span>{{
                         displayName(n).length > 20
                           ? displayName(n).substring(0, 20) + "..."
                           : displayName(n)
                       }}</span>
-                  </el-tooltip>
-                  <el-tooltip class="item" effect="dark" :content="n.mcpName || n.toolName" placement="top-start">
-                    <span class="el-icon-info desc-info" v-if="n.mcpName || n.toolName"></span>
-                  </el-tooltip>
-                </div>
-                <div class="bt">
-                  <span class="el-icon-s-operation bt-operation" @click="handleBuiltin(n)" v-if="
+                    </el-tooltip>
+                    <el-tooltip
+                      class="item"
+                      effect="dark"
+                      :content="n.mcpName || n.toolName"
+                      placement="top-start"
+                    >
+                      <span
+                        class="el-icon-info desc-info"
+                        v-if="n.mcpName || n.toolName"
+                      ></span>
+                    </el-tooltip>
+                  </div>
+                  <div class="bt">
+                    <span
+                      class="el-icon-s-operation bt-operation"
+                      @click="handleBuiltin(n)"
+                      v-if="
                         n.type === 'action' &&
                         n.toolType &&
                         n.toolType === 'builtin'
-                      "></span>
-                  <el-switch v-model="n.enable" class="bt-switch" @change="toolSwitch(n, n.type, n.enable)"></el-switch>
-                  <span @click="toolRemove(n, n.type)" class="el-icon-delete del"></span>
+                      "
+                    ></span>
+                    <el-switch
+                      v-model="n.enable"
+                      class="bt-switch"
+                      @change="toolSwitch(n, n.type, n.enable)"
+                    ></el-switch>
+                    <span
+                      @click="toolRemove(n, n.type)"
+                      class="el-icon-delete del"
+                    ></span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="block prompt-box link-box">
-        <p class="block-title tool-title">
-          <span>
-            {{ $t("agent.form.safetyConfig") }}
-            <el-tooltip class="item" effect="dark" :content="$t('agent.form.safetyConfigTips')" placement="top">
-              <span class="el-icon-question question-tips"></span>
-            </el-tooltip>
-          </span>
-          <span class="common-add">
-            <span @click="showSafety">
-              <span class="el-icon-s-operation"></span>
-              <span class="handleBtn" style="margin-right: 10px">{{
+        <div class="block prompt-box link-box">
+          <p class="block-title tool-title">
+            <span>
+              {{ $t("agent.form.safetyConfig") }}
+              <el-tooltip
+                class="item"
+                effect="dark"
+                :content="$t('agent.form.safetyConfigTips')"
+                placement="top"
+              >
+                <span class="el-icon-question question-tips"></span>
+              </el-tooltip>
+            </span>
+            <span class="common-add">
+              <span @click="showSafety">
+                <span class="el-icon-s-operation"></span>
+                <span class="handleBtn" style="margin-right: 10px">{{
                   $t("agent.form.config")
                 }}</span>
+              </span>
+              <el-switch
+                v-model="editForm.safetyConfig.enable"
+                :disabled="!(editForm.safetyConfig.tables || []).length"
+              ></el-switch>
             </span>
-            <el-switch v-model="editForm.safetyConfig.enable" :disabled="!(editForm.safetyConfig.tables || []).length"></el-switch>
-          </span>
-        </p>
-      </div>
-      <div class="block prompt-box link-box" v-if="editForm.visionsupport === 'support'">
-        <p class="block-title tool-title">
-          <span>
-            {{ $t("agent.form.vision") }}
-            <el-tooltip class="item" effect="dark" :content="$t('agent.form.visionTips')" placement="top">
-              <span class="el-icon-question question-tips"></span>
-            </el-tooltip>
-          </span>
-          <span class="common-add" @click="showVisualSet">
-            <span class="el-icon-s-operation"></span>
-            <span class="handleBtn" style="margin-right: 10px">{{
+          </p>
+        </div>
+        <div
+          class="block prompt-box link-box"
+          v-if="editForm.visionsupport === 'support'"
+        >
+          <p class="block-title tool-title">
+            <span>
+              {{ $t("agent.form.vision") }}
+              <el-tooltip
+                class="item"
+                effect="dark"
+                :content="$t('agent.form.visionTips')"
+                placement="top"
+              >
+                <span class="el-icon-question question-tips"></span>
+              </el-tooltip>
+            </span>
+            <span class="common-add" @click="showVisualSet">
+              <span class="el-icon-s-operation"></span>
+              <span class="handleBtn" style="margin-right: 10px">{{
                 $t("agent.form.config")
               }}</span>
-          </span>
-        </p>
+            </span>
+          </p>
+        </div>
+      </div>
+      <div class="drawer-test">
+        <Chat :editForm="editForm" :chatType="'test'" />
       </div>
     </div>
-    <div class="drawer-test">
-      <Chat :editForm="editForm" :chatType="'test'" />
-    </div>
-  </div>
 
-  <!-- 编辑智能体 -->
-  <CreateIntelligent ref="createIntelligentDialog" :type="'edit'" :editForm="editForm" @updateInfo="getAppDetail" />
-  <!-- 模型设置 -->
-  <ModelSet @setModelSet="setModelSet" ref="modelSetDialog" :modelform="editForm.modelConfig" :limitMaxTokens="limitMaxTokens" />
-  <!-- 选择工具类型 -->
-  <ToolDiaglog ref="toolDiaglog" @updateDetail="updateDetail" :assistantId="editForm.assistantId" />
-  <!-- 敏感词设置 -->
-  <setSafety ref="setSafety" @sendSafety="sendSafety" />
-  <!-- 知识库召回参数配置 -->
-  <knowledgeSetDialog ref="knowledgeSetDialog" @setKnowledgeSet="setKnowledgeSet" :showGraphSwitch="showGraphSwitch" />
-  <!-- 知识库选择 -->
-  <knowledgeSelect ref="knowledgeSelect" @getKnowledgeData="getKnowledgeData" />
-  <!-- 视图设置 -->
-  <visualSet ref="visualSet" @sendVisual="sendVisual" />
-  <!-- 内置工具详情 -->
-  <ToolDeatail ref="toolDeatail" @updateDetail="updateDetail" />
-  <!-- 提交至提示词 -->
-  <createPrompt :isCustom="true" :type="promptType" ref="createPrompt" @reload="updatePrompt" />
-  <!-- 提示词优化 -->
-  <PromptOptimize ref="promptOptimize" @promptSubmit="promptSubmit" />
-  <!-- 元数据设置 -->
-  <el-dialog :visible.sync="metaSetVisible" width="1050px" class="metaSetVisible" :before-close="handleMetaClose">
-    <template #title>
-      <div class="metaHeader">
-        <h3>{{ $t("agent.form.configMetaDataFilter") }}</h3>
-        <span>{{ $t("agent.form.metaDataFilterDesc") }}</span>
-      </div>
-    </template>
-    <metaSet ref="metaSet" :knowledgeId="currentKnowledgeId" :currentMetaData="currentMetaData" />
-    <span slot="footer" class="dialog-footer">
-      <el-button @click="handleMetaClose">{{
+    <!-- 编辑智能体 -->
+    <CreateIntelligent
+      ref="createIntelligentDialog"
+      :type="'edit'"
+      :editForm="editForm"
+      @updateInfo="getAppDetail"
+    />
+    <!-- 模型设置 -->
+    <ModelSet
+      @setModelSet="setModelSet"
+      ref="modelSetDialog"
+      :modelform="editForm.modelConfig"
+      :limitMaxTokens="limitMaxTokens"
+    />
+    <!-- 选择工具类型 -->
+    <ToolDiaglog
+      ref="toolDiaglog"
+      @updateDetail="updateDetail"
+      :assistantId="editForm.assistantId"
+    />
+    <!-- 敏感词设置 -->
+    <setSafety ref="setSafety" @sendSafety="sendSafety" />
+    <!-- 知识库召回参数配置 -->
+    <knowledgeSetDialog
+      ref="knowledgeSetDialog"
+      @setKnowledgeSet="setKnowledgeSet"
+      :showGraphSwitch="showGraphSwitch"
+    />
+    <!-- 知识库选择 -->
+    <knowledgeSelect
+      ref="knowledgeSelect"
+      @getKnowledgeData="getKnowledgeData"
+    />
+    <!-- 视图设置 -->
+    <visualSet ref="visualSet" @sendVisual="sendVisual" />
+    <!-- 内置工具详情 -->
+    <ToolDeatail ref="toolDeatail" @updateDetail="updateDetail" />
+    <!-- 提交至提示词 -->
+    <createPrompt
+      :isCustom="true"
+      :type="promptType"
+      ref="createPrompt"
+      @reload="updatePrompt"
+    />
+    <!-- 提示词优化 -->
+    <PromptOptimize ref="promptOptimize" @promptSubmit="promptSubmit" />
+    <!-- 元数据设置 -->
+    <el-dialog
+      :visible.sync="metaSetVisible"
+      width="1050px"
+      class="metaSetVisible"
+      :before-close="handleMetaClose"
+    >
+      <template #title>
+        <div class="metaHeader">
+          <h3>{{ $t("agent.form.configMetaDataFilter") }}</h3>
+          <span>{{ $t("agent.form.metaDataFilterDesc") }}</span>
+        </div>
+      </template>
+      <metaSet
+        ref="metaSet"
+        :knowledgeId="currentKnowledgeId"
+        :currentMetaData="currentMetaData"
+      />
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleMetaClose">{{
           $t("common.button.cancel")
         }}</el-button>
-      <el-button type="primary" @click="submitMeta">{{
+        <el-button type="primary" @click="submitMeta">{{
           $t("common.button.confirm")
         }}</el-button>
-    </span>
-  </el-dialog>
-</div>
+      </span>
+    </el-dialog>
+  </div>
 </template>
 
 <script>
-import {
-  appPublish
-} from "@/api/appspace";
-import {
-  store
-} from "@/store/index";
-import {
-  mapGetters,
-  mapActions
-} from "vuex";
+import { appPublish } from "@/api/appspace";
+import { store } from "@/store/index";
+import { mapGetters, mapActions } from "vuex";
 import CreateIntelligent from "@/components/createApp/createIntelligent";
 import setSafety from "@/components/setSafety";
 import visualSet from "./visualSet";
 import metaSet from "@/components/metaSet";
 import ModelSet from "./modelSetDialog";
-import {
-  selectModelList,
-  getRerankList
-} from "@/api/modelAccess";
+import { selectModelList, getRerankList } from "@/api/modelAccess";
 import {
   deleteMcp,
   enableMcp,
@@ -323,9 +515,7 @@ import {
 import ToolDiaglog from "./toolDialog";
 import ToolDeatail from "./toolDetail";
 import knowledgeSetDialog from "./knowledgeSetDialog";
-import {
-  readWorkFlow
-} from "@/api/workflow";
+import { readWorkFlow } from "@/api/workflow";
 import Chat from "./chat";
 import LinkIcon from "@/components/linkIcon.vue";
 import promptTemplate from "./prompt/index.vue";
@@ -438,9 +628,11 @@ export default {
           maxHistory: 0, //最长上下文
           useGraph: false,
         },
-        recommendQuestion: [{
-          value: ""
-        }],
+        recommendQuestion: [
+          {
+            value: "",
+          },
+        ],
         modelConfig: {
           temperature: 0.7,
           topP: 1,
@@ -530,9 +722,9 @@ export default {
     }
     //判断是否有插件管理的权限
     const accessCert = localStorage.getItem("access_cert");
-    const permission = accessCert ?
-      JSON.parse(accessCert).user.permission.orgPermission :
-      "";
+    const permission = accessCert
+      ? JSON.parse(accessCert).user.permission.orgPermission
+      : "";
     this.hasPluginPermission = permission.indexOf("plugin") !== -1;
   },
   beforeDestroy() {
@@ -660,10 +852,7 @@ export default {
       this.$refs.setSafety.showDialog(this.editForm.safetyConfig.tables);
     },
     sendSafety(data) {
-      const tablesData = data.map(({
-        tableId,
-        tableName
-      }) => ({
+      const tablesData = data.map(({ tableId, tableName }) => ({
         tableId,
         tableName,
       }));
@@ -671,7 +860,7 @@ export default {
     },
     actionSwitch(id) {
       enableAction({
-        actionId: id
+        actionId: id,
       }).then((res) => {
         if (res.code === 0) {
           this.getAppDetail();
@@ -689,12 +878,12 @@ export default {
     },
     customSwitch(n, enable) {
       switchCustomBuiltIn({
-          assistantId: this.editForm.assistantId,
-          actionName: n.actionName,
-          toolId: n.toolId,
-          toolType: n.toolType,
-          enable,
-        })
+        assistantId: this.editForm.assistantId,
+        actionName: n.actionName,
+        toolId: n.toolId,
+        toolType: n.toolType,
+        enable,
+      })
         .then((res) => {
           if (res.code === 0) {
             this.getAppDetail();
@@ -704,12 +893,12 @@ export default {
     },
     mcpSwitch(n, enable) {
       enableMcp({
-          assistantId: this.editForm.assistantId,
-          actionName: n.actionName,
-          enable,
-          mcpId: n.mcpId,
-          mcpType: n.mcpType,
-        })
+        assistantId: this.editForm.assistantId,
+        actionName: n.actionName,
+        enable,
+        mcpId: n.mcpId,
+        mcpType: n.mcpType,
+      })
         .then((res) => {
           if (res.code === 0) {
             this.getAppDetail();
@@ -719,10 +908,10 @@ export default {
     },
     workflowSwitch(id, enable) {
       enableWorkFlow({
-          assistantId: this.editForm.assistantId,
-          workFlowId: id,
-          enable,
-        })
+        assistantId: this.editForm.assistantId,
+        workFlowId: id,
+        enable,
+      })
         .then((res) => {
           if (res.code === 0) {
             this.getAppDetail();
@@ -752,7 +941,7 @@ export default {
     },
     goBack() {
       this.$router.push({
-        path: "/appSpace/agent"
+        path: "/appSpace/agent",
       });
     },
     handlePublish() {
@@ -775,7 +964,7 @@ export default {
       appPublish(data).then((res) => {
         if (res.code === 0) {
           this.$router.push({
-            path: "/explore"
+            path: "/explore",
           });
         }
       });
@@ -812,11 +1001,11 @@ export default {
     },
     customRemove(n) {
       delCustomBuiltIn({
-          assistantId: this.editForm.assistantId,
-          toolId: n.toolId,
-          toolType: n.toolType,
-          actionName: n.actionName,
-        })
+        assistantId: this.editForm.assistantId,
+        toolId: n.toolId,
+        toolType: n.toolType,
+        actionName: n.actionName,
+      })
         .then((res) => {
           if (res.code === 0) {
             this.$message.success(this.$t("agent.form.deleteSuccess"));
@@ -827,11 +1016,11 @@ export default {
     },
     mcpRemove(n) {
       deleteMcp({
-          assistantId: this.editForm.assistantId,
-          actionName: n.actionName,
-          mcpId: n.mcpId,
-          mcpType: n.mcpType,
-        })
+        assistantId: this.editForm.assistantId,
+        actionName: n.actionName,
+        mcpId: n.mcpId,
+        mcpType: n.mcpType,
+      })
         .then((res) => {
           if (res.code === 0) {
             this.$message.success(this.$t("agent.form.deleteSuccess"));
@@ -877,8 +1066,10 @@ export default {
       const params = {
         assistantId: this.editForm.assistantId,
         prologue: this.editForm.prologue,
-        recommendQuestion: recommendQuestion.length > 0 && recommendQuestion[0] !== "" ?
-          recommendQuestion : [],
+        recommendQuestion:
+          recommendQuestion.length > 0 && recommendQuestion[0] !== ""
+            ? recommendQuestion
+            : [],
         instructions: this.editForm.instructions,
         knowledgeBaseConfig: {
           config: this.editForm.knowledgeConfig,
@@ -894,15 +1085,17 @@ export default {
         },
         safetyConfig: this.editForm.safetyConfig,
         visionConfig: {
-          picNum: this.editForm.visionConfig.picNum
+          picNum: this.editForm.visionConfig.picNum,
         },
-        rerankConfig: rerankInfo ? {
-          displayName: rerankInfo.displayName,
-          model: rerankInfo.model,
-          modelId: rerankInfo.modelId,
-          modelType: rerankInfo.modelType,
-          provider: rerankInfo.provider,
-        } : {},
+        rerankConfig: rerankInfo
+          ? {
+              displayName: rerankInfo.displayName,
+              model: rerankInfo.model,
+              modelId: rerankInfo.modelId,
+              modelType: rerankInfo.modelType,
+              provider: rerankInfo.provider,
+            }
+          : {},
       };
       let res = await putAgentInfo(params);
       if (res.code === 0) {
@@ -930,9 +1123,9 @@ export default {
         this.startLoading(100);
         let data = res.data;
         this.editForm.knowledgeConfig =
-          res.data.knowledgeBaseConfig.config.matchType === "" ?
-          this.editForm.knowledgeConfig :
-          res.data.knowledgeBaseConfig.config;
+          res.data.knowledgeBaseConfig.config.matchType === ""
+            ? this.editForm.knowledgeConfig
+            : res.data.knowledgeBaseConfig.config;
         this.editForm.knowledgeConfig.rerankModelId =
           res.data.rerankConfig.modelId;
         const knowledgeData = res.data.knowledgeBaseConfig.knowledgebases;
@@ -948,17 +1141,23 @@ export default {
           instructions: data.instructions || "", //系统提示词
           rerankParams: data.rerankConfig.modelId || "",
           visionConfig: data.visionConfig, //图片配置
-          modelConfig: data.modelConfig.config !== null ?
-            data.modelConfig.config : this.editForm.modelConfig,
+          modelConfig:
+            data.modelConfig.config !== null
+              ? data.modelConfig.config
+              : this.editForm.modelConfig,
           modelParams: data.modelConfig.modelId || "",
-          recommendQuestion: data.recommendQuestion && data.recommendQuestion.length > 0 ?
-            data.recommendQuestion.map((n, index) => {
-              return {
-                value: n,
-              };
-            }) : [],
-          safetyConfig: data.safetyConfig !== null ?
-            data.safetyConfig : this.editForm.safetyConfig,
+          recommendQuestion:
+            data.recommendQuestion && data.recommendQuestion.length > 0
+              ? data.recommendQuestion.map((n, index) => {
+                  return {
+                    value: n,
+                  };
+                })
+              : [],
+          safetyConfig:
+            data.safetyConfig !== null
+              ? data.safetyConfig
+              : this.editForm.safetyConfig,
         };
 
         //设置模型信息
@@ -971,15 +1170,15 @@ export default {
         this.allTools = [
           ...this.workFlowInfos.map((item) => ({
             ...item,
-            type: "workflow"
+            type: "workflow",
           })),
           ...this.mcpInfos.map((item) => ({
             ...item,
-            type: "mcp"
+            type: "mcp",
           })),
           ...this.actionInfos.map((item) => ({
             ...item,
-            type: "action"
+            type: "action",
           })),
         ];
 
@@ -1012,7 +1211,7 @@ export default {
         return;
       }
       this.editForm.recommendQuestion.push({
-        value: ""
+        value: "",
       });
     },
     clearRecommend(n, index) {
@@ -1022,16 +1221,17 @@ export default {
     },
     async preDelAction(actionId) {
       this.$confirm(
-          this.$t("createApp.delActionTips"),
-          this.$t("knowledgeManage.tip"), {
-            confirmButtonText: this.$t("createApp.save"),
-            cancelButtonText: this.$t("createApp.cancel"),
-            type: "warning",
-          }
-        )
+        this.$t("createApp.delActionTips"),
+        this.$t("knowledgeManage.tip"),
+        {
+          confirmButtonText: this.$t("createApp.save"),
+          cancelButtonText: this.$t("createApp.cancel"),
+          type: "warning",
+        }
+      )
         .then(async () => {
           let res = await delActionInfo({
-            actionId
+            actionId,
           });
           if (res.code === 0) {
             this.$message.success(this.$t("createApp.delSuccess"));
@@ -1046,7 +1246,7 @@ export default {
 
 <style lang="scss" scoped>
 .isDisabled .header-right,
-.isDisabled .drawer-form>div {
+.isDisabled .drawer-form > div {
   user-select: none;
   pointer-events: none !important;
 }
@@ -1749,7 +1949,8 @@ export default {
     }
   }
 }
-</style><style lang="scss">
+</style>
+<style lang="scss">
 .vue-treeselect .vue-treeselect__menu-container {
   z-index: 9999 !important;
 }

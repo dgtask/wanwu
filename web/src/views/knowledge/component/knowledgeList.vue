@@ -20,7 +20,11 @@
             />
             <div class="create-filter"></div>
           </div>
-          <span>{{ category === 0 ? "创建知识库" : "创建问答库" }}</span>
+          <span>{{
+            category === 0
+              ? $t("knowledgeManage.createKnowledge")
+              : $t("knowledgeManage.createQaDatabase")
+          }}</span>
         </div>
       </div>
       <template v-if="listData && listData.length">
@@ -36,7 +40,12 @@
               :src="require('@/assets/imgs/knowledgeIcon.png')"
             />
             <p :class="['smartDate']">
-              {{ n.docCount || 0 }}{{ category === 0 ? "个文档" : "个问答对" }}
+              {{ n.docCount || 0 }}
+              {{
+                category === 0
+                  ? $t("knowledgeManage.docCountUnit")
+                  : $t("knowledgeManage.qaCountUnit")
+              }}
             </p>
           </div>
           <div class="info rl">
@@ -60,7 +69,7 @@
               @click.stop="addTag(n.knowledgeId, n)"
             >
               <span class="el-icon-price-tag icon-tag"></span>
-              添加标签
+              {{ $t("knowledgeManage.addTag") }}
             </span>
             <span v-else @click.stop="addTag(n.knowledgeId, n)">{{
               formattedTagNames(n.knowledgeTagList)
@@ -73,19 +82,23 @@
               :content="n.orgName"
               placement="right-start"
             >
-              <span style="margin-right: 52px; color: #999; font-size: 12px">{{
-                n.orgName.length > 10
-                  ? n.orgName.substring(0, 10) + "..."
-                  : n.orgName
-              }}</span>
+              <span style="margin-right: 52px; color: #999; font-size: 12px">
+                {{
+                  n.orgName.length > 10
+                    ? n.orgName.substring(0, 10) + "..."
+                    : n.orgName
+                }}
+              </span>
             </el-tooltip>
             <div v-if="n.share" class="publishType" style="right: 22px">
-              <span v-if="n.share" class="publishType-tag"
-                ><span class="el-icon-unlock"></span> 公开</span
-              >
-              <span v-else class="publishType-tag"
-                ><span class="el-icon-lock"></span> 私密</span
-              >
+              <span v-if="n.share" class="publishType-tag">
+                <span class="el-icon-unlock"></span>
+                {{ $t("knowledgeManage.public") }}
+              </span>
+              <span v-else class="publishType-tag">
+                <span class="el-icon-lock"></span>
+                {{ $t("knowledgeManage.private") }}
+              </span>
             </div>
             <el-dropdown @command="handleClick($event, n)" placement="top">
               <span class="el-dropdown-link">
@@ -95,14 +108,17 @@
                 <el-dropdown-item
                   command="edit"
                   v-if="[30].includes(n.permissionType)"
-                  >{{ $t("common.button.edit") }}</el-dropdown-item
                 >
+                  {{ $t("common.button.edit") }}
+                </el-dropdown-item>
                 <el-dropdown-item
                   command="delete"
                   v-if="[30].includes(n.permissionType)"
                   >{{ $t("common.button.delete") }}</el-dropdown-item
                 >
-                <el-dropdown-item command="power">权限</el-dropdown-item>
+                <el-dropdown-item command="power">
+                  {{ $t("knowledgeSelect.power") }}
+                </el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
           </div>
@@ -179,7 +195,7 @@ export default {
     },
     addTag(id, n) {
       if ([0].includes(n.permissionType)) {
-        this.$message.warning("无操作权限");
+        this.$message.warning(this.$t("knowledgeSelect.noPermission"));
         return;
       }
       this.$nextTick(() => {

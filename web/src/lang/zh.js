@@ -625,6 +625,9 @@ export default {
     tips: '您可单独或批量上传以下格式的文档:txt、pdf、docx、doc、xlsx、xls、zip、tar.gz、csv、pptx、html',
     knowledge: '知识库',
     createKnowledge: '新建知识库',
+    createQaDatabase:"新建问答库",
+    docCountUnit: '个文档',
+    qaCountUnit: '个问答对',
     editInfo: '编辑信息',
     addPartner: '添加同级',
     addChild: '添加子级',
@@ -765,6 +768,7 @@ export default {
     keyWordTip: '知识库问答场景，可配置问题中使用的口语化关键词与知识库文档中词语的映射规则，便于提升知识库内容的召回效果及回答准确率 。',
     keyWordPlaceholder: '输入问题中的关键词或文档中的词语搜索',
     newKeyWord: '新建关键词',
+    addTag: '添加标签',
     create: {
       knowledgeGraph: '知识图谱',
       modelSelect: '模型选择',
@@ -926,6 +930,8 @@ export default {
     createTime: '创建时间',
     add: '添加',
     added: '已添加',
+    power: '权限',
+    noPermission: '无操作权限',
   },
   metaData: {
     batchEdit: '批量编辑元数据值',

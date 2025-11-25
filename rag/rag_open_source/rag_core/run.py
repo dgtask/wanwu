@@ -25,6 +25,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from logging_config import setup_logging
 from settings import MONGO_URL, USE_DATA_FLYWHEEL
 from qa import index as qa_index
+from qa import search as qa_search
 
 # 定义路径
 paths = ["./parser_data"]
@@ -202,7 +203,6 @@ def del_kb():
         # 在批量删除文件中补充增加删除reids逻辑 begin
         if USE_DATA_FLYWHEEL:
             try:
-                # redis_client = redis_utils.get_redis_connection()
                 prefix = "%s^%s^" % (user_id, kb_name)
                 redis_data = redis_utils.delete_cache_by_prefix(redis_client, prefix)
                 logger.info("clean flywheel cache result:%s" % json.dumps(redis_data, ensure_ascii=False))
@@ -568,7 +568,6 @@ def del_file():
         # 在批量删除文件中补充增加删除reids逻辑 begin
         if USE_DATA_FLYWHEEL:
             try:
-                # redis_client = redis_utils.get_redis_connection()
                 prefix = "%s^%s^" % (user_id, kb_name)
                 redis_data = redis_utils.delete_cache_by_prefix(redis_client, prefix)
                 logger.info("clean flywheel cache result:%s" % json.dumps(redis_data, ensure_ascii=False))
@@ -618,7 +617,6 @@ def del_files():
         # 在批量删除文件中补充增加删除reids逻辑 begin
         if USE_DATA_FLYWHEEL:
             try:
-                # redis_client = redis_utils.get_redis_connection()
                 prefix = "%s^%s^" % (user_id, kb_name)
                 redis_data = redis_utils.delete_cache_by_prefix(redis_client, prefix)
                 logger.info("clean flywheel cache result:%s" % json.dumps(redis_data, ensure_ascii=False))
@@ -945,7 +943,6 @@ def del_knowledge_cache():
 
         assert len(user_id) > 0
         assert len(kb_name) > 0
-        # redis_client = redis_utils.get_redis_connection()
         prefix = "%s^%s^" % (user_id, kb_name)
         result_data = redis_utils.delete_cache_by_prefix(redis_client, prefix)
         headers = {'Access-Control-Allow-Origin': '*'}
@@ -1159,7 +1156,6 @@ def proper_noun():
         if msg_id and action and knowledge_base_info:  # 注意 knowledge_base 里是 kb_ids
             for user_id, knowledge_base in knowledge_base_info.items():
                 try:
-                    # redis_client = redis_utils.get_redis_connection()
                     item_entry = {"id": msg_id, "name": name, "alias": alias}
                     if action == "add":
                         redis_utils.add_query_dict_entry(redis_client, user_id, item_entry, knowledge_base)
@@ -1546,6 +1542,80 @@ def rename_qa_meta_keys():
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     return response
 
+
+@app.route("/rag/search-QA-base", methods=["POST"])  # 查询 done
+def search_qa_base():
+    logger.info('---------------问答库问题查询---------------')
+    try:
+        req_info = json.loads(request.get_data())
+
+        return_meta = req_info.get("return_meta", False)
+        qa_base_info = req_info.get("QABaseInfo", {})
+        question = req_info['question']
+        rate = float(req_info.get('threshold', 0))
+        top_k = int(req_info.get('topK', 5))
+        # 是否query改写
+        rewrite_query = req_info.get("rewriteQuery", False)
+        rerank_mod = req_info.get("rerankMod", "rerank_model")
+        rerank_model_id = req_info.get("rerankModelId", '')
+        weights = req_info.get("weights", None)
+        retrieve_method = req_info.get("retrieveMethod", "hybrid_search")
+
+        #metadata filtering params
+        metadata_filtering = req_info.get("metadataFiltering", False)
+        metadata_filtering_conditions = req_info.get("metadataFilteringConditions", [])
+        if not metadata_filtering:
+            metadata_filtering_conditions = []
+        logger.info(repr(req_info))
+
+        # 检查 qa_base_info 是否为空
+        if not qa_base_info:
+            raise ValueError("qa_base_info cannot be empty")
+        # 检查 rerank_model_id 是否为空
+        if rerank_mod == "rerank_model" and not rerank_model_id:
+            raise ValueError("rerank_model_id cannot be empty when using model-based reranking.")
+
+        if rerank_mod == "weighted_score" and weights is None:
+            raise ValueError("weights cannot be empty when using weighted score reranking.")
+        if weights is not None and not isinstance(weights, dict):
+            raise ValueError("weights must be a dictionary or None.")
+
+        if rerank_mod == "weighted_score" and retrieve_method != "hybrid_search":
+            raise ValueError("Weighted score reranking is only supported in hybrid search mode.")
+
+        if len(question) <= 0:
+            raise ValueError("empty question")
+
+        if rewrite_query:
+            for user_id, qa_info_list in qa_base_info.items():
+                qa_base_names = [qa_info['qa_base_name'] for qa_info in qa_info_list]
+                qa_base_ids = [qa_info['qa_base_id']  for qa_info in qa_info_list]
+                query_dict_list = get_query_dict_cache(redis_client, user_id, qa_base_ids)
+                if query_dict_list:
+                    rewritten_queries = query_rewrite(question, query_dict_list)
+                    logger.info("对query进行改写,原问题:%s 改写后问题:%s" % (question, ",".join(rewritten_queries)))
+                    if len(rewritten_queries) > 0:
+                        question = rewritten_queries[0]
+                        logger.info("按新问题:%s 进行召回" % question)
+                else:
+                    logger.info("未启用或维护转名词表,query未改写,按原问题:%s 进行召回" % question)
+
+        response_info = qa_search.search_qa_base(question, top_k, rate, return_meta, retrieve_method = retrieve_method,
+                                                   rerank_model_id=rerank_model_id, rerank_mod=rerank_mod,
+                                                   weights=weights, metadata_filtering_conditions=metadata_filtering_conditions,
+                                                   qa_base_info=qa_base_info)
+        json_str = json.dumps(response_info, ensure_ascii=False)
+
+        response = make_response(json_str)
+        response.headers['Access-Control-Allow-Origin'] = '*'
+    except Exception as e:
+        logger.info(repr(e))
+        response_info = {'code': 1, "message": repr(e), "data": {"prompt": "", "searchList": []}}
+        json_str = json.dumps(response_info, ensure_ascii=False)
+        response = make_response(json_str)
+        response.headers['Access-Control-Allow-Origin'] = '*'
+
+    return response
 
 
 if __name__ == '__main__':

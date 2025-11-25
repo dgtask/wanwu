@@ -2018,5 +2018,191 @@ def update_qa_metas():
         return jsonarr
 
 
+@app.route('/api/v1/rag/es/qa_rescore', methods=['POST'])
+def qa_rescore():
+    logger.info("request: /api/v1/rag/es/qa_rescore")
+    data = request.get_json()
+    logger.info('qa rescore request_params: ' + json.dumps(data, indent=4, ensure_ascii=False))
+
+    search_list_infos = data.get("search_list_infos")
+    query = data.get('query')
+    weights = data.get('weights')
+
+    try:
+        search_list = []
+        bm25_scores = []
+        cosine_scores = []
+        for user_id, search_list_info in search_list_infos.items():
+            qa_index_name = get_qa_index_name(user_id)
+            qa_base_names = search_list_info["base_names"]
+            temp_search_list = search_list_info["search_list"]
+            embedding_model_id = kb_info_ops.get_uk_kb_emb_model_id(user_id, qa_base_names[0])
+
+            result = qa_ops.qa_rescore_bm25_score(qa_index_name, query, temp_search_list)
+            temp_search_list = result["search_list"]
+            bm25_scores = result["scores"]
+            cosine_scores = emb_util.calculate_cosine(query, temp_search_list, embedding_model_id)
+            logger.info(f"rescore bm25_scores: {bm25_scores}, cosine_scores: {cosine_scores}")
+            search_list.extend(temp_search_list)
+
+        def normalize_to_01(scores):
+            if len(scores) == 1:
+                return [1.0]  # 单个分数归一化为1
+            min_score = min(scores)
+            max_score = max(scores)
+            if min_score == max_score:
+                return [1.0 for _ in scores]  # 所有分数相同，统一设为1
+            return [(score - min_score) / (max_score - min_score) for score in scores]
+
+        bm25_normalized = normalize_to_01(bm25_scores)
+        cosine_normalized = normalize_to_01(cosine_scores)
+
+        final_search_list = []
+        for item, text_score, vector_score in zip(search_list, bm25_normalized, cosine_normalized):
+            score = weights["vector_weight"] * vector_score + weights["text_weight"] * text_score
+            item["score"] = score
+            final_search_list.append(item)
+
+        final_search_list.sort(key=lambda x: x["score"], reverse=True)
+        result = {
+            "code": 0,
+            "message": "success",
+            "data": {
+                "search_list": final_search_list,
+                "scores": [item["score"] for item in final_search_list]
+            }
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"qa_rescore接口返回结果为：{jsonarr}")
+        return jsonarr
+    except Exception as e:
+        result = {
+            "code": 1,
+            "message": str(e)
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"qa_rescore接口返回结果为：{jsonarr}")
+        return jsonarr
+
+
+
+@app.route('/api/v1/rag/es/vector_search', methods=['POST'])
+def vector_search():
+    """ 多知识库 KNN检索 """
+    logger.info("--------------------------启动问答库向量检索---------------------------\n")
+    data = request.get_json()
+    user_id = data.get("userId")
+    qa_index_name = get_qa_index_name(user_id)
+    base_names = data.get("base_names")
+    top_k = data.get("topk", 10)
+    query = data.get("question")
+    min_score = data.get("threshold", 0)
+    metadata_filtering_conditions = data.get("metadata_filtering_conditions", [])
+    embedding_model_id = kb_info_ops.get_uk_kb_emb_model_id(user_id, base_names[0])
+    logger.info(f"用户:{user_id},请求查询的base_names为:{base_names},embedding_model_id:{embedding_model_id}")
+    logger.info(f"用户请求的query为:{query}")
+    try:
+
+        exists_base_names = kb_info_ops.get_uk_qa_name_list(user_id)  # 从映射表中获取
+        filtering_conditions = {}
+        for condition in metadata_filtering_conditions:
+            base_name = condition["filtering_qa_base_name"]
+            filtering_conditions[base_name] = condition
+
+        final_conditions = []
+        for base_name in base_names:
+            if base_name not in exists_base_names:
+                raise RuntimeError(f"用户:{user_id}, {base_name}问答库不存在")
+
+            if base_name in filtering_conditions:
+                condition = filtering_conditions[base_name]
+                final_conditions.append(deepcopy(condition))
+
+        result_dict = qa_ops.vector_search(qa_index_name, base_names, query, top_k, min_score,
+                                           embedding_model_id=embedding_model_id, meta_filter_list=final_conditions)
+        search_list = result_dict["search_list"]
+        scores = result_dict["scores"]
+
+        result = {
+            "code": 0,
+            "message": "success",
+            "data": {
+                "search_list": search_list,
+                "scores": scores
+            }
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{user_id},问答库:{base_names},query:{query},向量检索的接口返回结果为：{jsonarr}")
+        return jsonarr
+
+    except Exception as e:
+        logger.info(f"查询问答库时发生错误：{e}")
+        result = {
+            "code": 1,
+            "message": str(e)
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{user_id},问答库:{base_names},query:{query},向量检索的接口返回结果为：{jsonarr}")
+        return jsonarr
+
+
+@app.route('/api/v1/rag/es/text_search', methods=['POST'])
+def vector_search():
+    """ 多问答库库 text检索 """
+    logger.info("--------------------------启动问答库全文检索---------------------------\n")
+    data = request.get_json()
+    user_id = data.get("userId")
+    qa_index_name = get_qa_index_name(user_id)
+    base_names = data.get("base_names")
+    top_k = data.get("topk", 10)
+    query = data.get("question")
+    min_score = data.get("threshold", 0)
+    metadata_filtering_conditions = data.get("metadata_filtering_conditions", [])
+    logger.info(f"用户:{user_id},请求查询的base_names为:{base_names}")
+    logger.info(f"用户请求的query为:{query}")
+    try:
+
+        exists_base_names = kb_info_ops.get_uk_qa_name_list(user_id)  # 从映射表中获取
+        filtering_conditions = {}
+        for condition in metadata_filtering_conditions:
+            base_name = condition["filtering_qa_base_name"]
+            filtering_conditions[base_name] = condition
+
+        final_conditions = []
+        for base_name in base_names:
+            if base_name not in exists_base_names:
+                raise RuntimeError(f"用户:{user_id}, {base_name}问答库不存在")
+
+            if base_name in filtering_conditions:
+                condition = filtering_conditions[base_name]
+                final_conditions.append(deepcopy(condition))
+
+        result_dict = qa_ops.text_search(qa_index_name, base_names, query, top_k, min_score,
+                                         meta_filter_list=final_conditions)
+        search_list = result_dict["search_list"]
+        scores = result_dict["scores"]
+
+        result = {
+            "code": 0,
+            "message": "success",
+            "data": {
+                "search_list": search_list,
+                "scores": scores
+            }
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{user_id},问答库:{base_names},query:{query},全文检索的接口返回结果为：{jsonarr}")
+        return jsonarr
+
+    except Exception as e:
+        logger.info(f"查询问答库时发生错误：{e}")
+        result = {
+            "code": 1,
+            "message": str(e)
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{user_id},问答库:{base_names},query:{query},全文检索的接口返回结果为：{jsonarr}")
+        return jsonarr
+
 if __name__ == '__main__':
     app.run()  # debug=True

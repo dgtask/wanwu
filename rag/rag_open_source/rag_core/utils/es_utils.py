@@ -646,6 +646,113 @@ def update_qa_metas(user_id, qa_base_name, qa_base_id, metas, update_type):
         logger.error(f"es更新问答对元数据请求异常, user_id: {user_id}, qa_base_name: {qa_base_name}, exception: {repr(e)}")
         return response_info
 
+def vector_search(user_id, base_names, question, top_k, threshold=0.0, metadata_filtering_conditions = [], base_type="qa"):
+    response_info = {'code': 0, "message": "成功", "data": {}}
+    url = ES_BASE_URL + '/api/v1/rag/es/vector_search'
+    headers = {'Content-Type': 'application/json'}
+
+    data = {
+        "userId": user_id,
+        "base_names": base_names,
+        "topk": top_k,
+        "question": question,
+        "threshold": threshold,
+        "metadata_filtering_conditions": metadata_filtering_conditions,
+        "base_type": base_type
+    }
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'),
+                                 timeout=TIME_OUT)
+        if response.status_code != 200:
+            logger.error(
+                f"问答对向量检索请求失败, user_id: {user_id}, base_names: {base_names}, response: {repr(response.text)}")
+            raise RuntimeError(str(response.text))
+
+        result_data = json.loads(response.text)
+        if result_data['code'] != 0:
+            logger.error(
+                f"问答对向量检索请求失败, user_id: {user_id}, base_names: {base_names}, response: {result_data}")
+            raise RuntimeError(result_data['message'])
+
+        logger.info(f"问答对向量检索请求成功, user_id: {user_id}, base_names: {base_names}")
+        return result_data
+    except Exception as e:
+        response_info['code'] = 1
+        response_info['message'] = str(e)
+        logger.error(f"问答对向量检索请求异常, user_id: {user_id}, base_names: {base_names}, exception: {repr(e)}")
+        return response_info
+
+def full_text_search(user_id, base_names, question, top_k, search_by = "question", threshold=0.0, metadata_filtering_conditions=[], base_type="qa"):
+    response_info = {'code': 0, "message": "成功", "data": {}}
+    url = ES_BASE_URL + '/api/v1/rag/es/text_search'
+    headers = {'Content-Type': 'application/json'}
+
+    data = {
+        "userId": user_id,
+        "base_names": base_names,
+        "topk": top_k,
+        "question": question,
+        "threshold": threshold,
+        "metadata_filtering_conditions": metadata_filtering_conditions,
+        "base_type": base_type
+    }
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'),
+                                 timeout=TIME_OUT)
+        if response.status_code != 200:
+            logger.error(
+                f"问答对全文检索请求失败, user_id: {user_id}, base_names: {base_names}, response: {repr(response.text)}")
+            raise RuntimeError(str(response.text))
+
+        result_data = json.loads(response.text)
+        if result_data['code'] != 0:
+            logger.error(
+                f"问答对全文检索请求失败, user_id: {user_id}, base_names: {base_names}, response: {result_data}")
+            raise RuntimeError(result_data['message'])
+
+        logger.info(f"问答对全文检索请求成功, user_id: {user_id}, base_names: {base_names}")
+        return result_data
+    except Exception as e:
+        response_info['code'] = 1
+        response_info['message'] = str(e)
+        logger.error(f"问答对全文检索请求异常, user_id: {user_id}, base_names: {base_names}, exception: {repr(e)}")
+        return response_info
+
+def qa_weighted_rerank(query, weights, top_k, search_list_infos):
+    response_info = {'code': 0, "message": "成功", "data": {"search_list":[], "scores": []}}
+    es_data = {
+        "query": query,
+        "search_list_infos": search_list_infos,
+        "weights": weights
+    }
+
+    es_url = ES_BASE_URL + "/api/v1/rag/es/qa_rescore"
+    headers = {'Content-Type': 'application/json'}
+    try:
+        if not search_list_infos:
+            return response_info
+        response = requests.post(es_url, headers=headers, json=es_data, timeout=TIME_OUT)
+        if response.status_code != 200:
+            logger.error(f"问答对权重重排序请求失败, search_list_infos: {search_list_infos}, response: {repr(response.text)}")
+            raise RuntimeError(str(response.text))
+
+        result_data = json.loads(response.text)
+        if result_data['code'] != 0:
+            logger.error(f"问答对权重重排序请求失败, search_list_infos: {search_list_infos}, response: {result_data}")
+            raise RuntimeError(result_data['message'])
+
+        response_info["data"]["search_list"] = result_data['data']['search_list'][:top_k]
+        response_info["data"]["scores"] = result_data['data']['scores'][:top_k]
+        logger.info(f"问答对权重重排序请求成功, response_info: {response_info}")
+        return response_info
+    except Exception as e:
+        response_info['code'] = 1
+        response_info['message'] = str(e)
+        logger.error(
+            f"问答对权重重排序请求异常, exception: {repr(e)}, search_list_infos: {search_list_infos}")
+        return response_info
+
+
 if __name__ == '__main__':
     keywords = {"商飞测试": 100,"杭州": 10}
     result = search_keyword("1", ["gx_test"], keywords, 5, 0)

@@ -5,7 +5,8 @@ from log.logger import logger
 
 from settings import DELETE_BACTH_SIZE
 from utils.util import validate_index_name
-from utils.meta_util import retype_meta_datas
+from utils.meta_util import retype_meta_datas, build_doc_meta_query
+from utils.emb_util import get_embs
 
 def delete_data_by_qa_info(index_name: str, qa_name: str, qa_id: str):
     """根据索引名和 qa_name, qa_id字段 精确匹配删除文档，并返回删除操作的状态"""
@@ -428,3 +429,146 @@ def rename_metas(index_name, qa_base_name, qa_base_id, key_mappings):
     except Exception as e:
         logger.info(f"索引 '{index_name}' qa_base_name:{qa_base_name} , rename元数据key失败, error: {str(e)}")
         return {"success": False, "error": str(e)}
+
+
+def qa_rescore_bm25_score(index_name, query, search_list = []):
+    qa_pair_ids = []
+    for item in search_list:
+        qa_pair_ids.append(item['qa_pair_id'])
+    """根据content id 进行过滤，重计算bm 25得分，并按分数从高到低排序"""
+    search_body = {
+        "query": {
+            "bool": {
+                "filter": [
+                    {"terms": {"qa_pair_id": qa_pair_ids}}
+                ],
+                "must": [
+                    {"match": {"question": query}}
+                ]
+            }
+        },
+        "size": len(search_list),  # 指定返回的文档数量
+        "sort": [
+            {"_score": {"order": "desc"}}  # 按分数降序排序
+        ]
+    }
+
+    response = es.search(index=index_name, body=search_body)
+
+    search_list = []
+    scores = []
+    # 遍历搜索结果，填充列表
+    for hit in response['hits']['hits']:
+        hit_data = hit['_source']
+        hit_data["score"] = hit['_score']
+        search_list.append(hit_data)
+        scores.append(hit['_score'])
+
+    # 构建结果字典
+    result_dict = {
+        "search_list": search_list,
+        "scores": scores
+    }
+
+    return result_dict
+
+
+def vector_search(index_name, base_names, query, top_k, min_score, embedding_model_id="", meta_filter_list=[]):
+    """根据查询检索数据，仅返回分数高于 min_score 的文档，并按分数从高到低排序，支持多知识库"""
+
+    query_vector = get_embs([query], embedding_model_id=embedding_model_id)["result"][0]["dense_vec"]
+    field_name = f"q_{len(query_vector)}_content_vector"
+
+    search_body = {
+        "knn": {
+            "field": field_name,
+            "query_vector": query_vector,
+            "filter": [
+                build_doc_meta_query(meta_filter_list)
+            ],
+            "k": top_k,
+            "num_candidates": max(50, top_k),
+        },
+        "min_score": min_score,
+        "size": top_k,  # 指定返回的文档数量
+        "sort": [
+            {"_score": {"order": "desc"}}  # 按分数降序排序
+        ],
+        "_source": {
+            "excludes": [
+                "content_vector",
+                "q_768_content_vector",
+                "q_1024_content_vector",
+                "q_1536_content_vector",
+                "q_2048_content_vector"
+            ]
+        } #排除embedding数据
+    }
+
+    response = es.search(index=index_name, body=search_body)
+
+    search_list = []
+    scores = []
+    # 遍历搜索结果，填充列表
+    for hit in response['hits']['hits']:
+        hit_data = hit['_source']
+        hit_data["score"] = hit['_score']
+        search_list.append(hit_data)
+        scores.append(hit['_score'])
+
+    # 构建结果字典
+    result_dict = {
+        "search_list": search_list,
+        "scores": scores
+    }
+
+    return result_dict
+
+def text_search(index_name, base_names, query, top_k, min_score, meta_filter_list=[]):
+    """根据查询检索数据，仅返回分数高于 min_score 的文档，并按分数从高到低排序，支持多知识库"""
+
+    search_body = {
+        "query": {
+            "bool": {
+                "filter": [
+                    build_doc_meta_query(meta_filter_list)
+                ],
+                "must": [
+                    {"match": {"question": query}}
+                ]
+            }
+        },
+        "min_score": min_score,
+        "size": top_k,  # 指定返回的文档数量
+        "sort": [
+            {"_score": {"order": "desc"}}  # 按分数降序排序
+        ],
+        "_source": {
+            "excludes": [
+                "content_vector",
+                "q_768_content_vector",
+                "q_1024_content_vector",
+                "q_1536_content_vector",
+                "q_2048_content_vector"
+            ]
+        }  # 排除embedding数据
+    }
+
+    response = es.search(index=index_name, body=search_body)
+
+    search_list = []
+    scores = []
+    # 遍历搜索结果，填充列表
+    for hit in response['hits']['hits']:
+        hit_data = hit['_source']
+        hit_data["score"] = hit['_score']
+        search_list.append(hit_data)
+        scores.append(hit['_score'])
+
+    # 构建结果字典
+    result_dict = {
+        "search_list": search_list,
+        "scores": scores
+    }
+
+    return result_dict

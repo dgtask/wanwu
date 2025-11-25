@@ -518,7 +518,7 @@ def get_knowledge_based_answer(user_id, kb_names, question, rate, top_k, chunk_c
                                prompt_template='', search_field='content', default_answer='根据已知信息，无法回答您的问题。',
                                auto_citation=False, retrieve_method="hybrid_search", kb_ids=[],
                                filter_file_name_list=[], rerank_model_id='', rerank_mod="rerank_model",
-                               weights: Optional[dict] | None = None, term_weight_coefficient=1,
+                               weights: Optional[dict] | None = None,
                                metadata_filtering_conditions=[], knowledge_base_info={}, use_graph=False):
     """ knowledge_base_info: {"user_id1": [{ "kb_id": "","kb_name": ""}, { "kb_id": "","kb_name": ""}]}"""
     try:
@@ -668,9 +668,10 @@ def get_knowledge_based_answer(user_id, kb_names, question, rate, top_k, chunk_c
             logger.info('useful_list is None 重排结果：' + json.dumps(repr(response_info),ensure_ascii=False))
             return response_info
         if rerank_mod == "rerank_model":
-            sorted_scores, sorted_search_list = rerank_utils.get_model_rerank(question, top_k, milvus_useful_list,
-                                                                              es_useful_list, rerank_model_id,
-                                                                              term_weight_coefficient=term_weight_coefficient)
+            sorted_scores, sorted_search_list = rerank_utils.get_model_rerank(question, top_k,
+                                                                              rerank_utils.gen_rag_list(milvus_useful_list, es_useful_list),
+                                                                              rerank_utils.gen_raw_list(milvus_useful_list, es_useful_list),
+                                                                              rerank_model_id)
         elif rerank_mod == "weighted_score":
             sorted_scores, sorted_search_list = es_utils.get_weighted_rerank(user_id, kb_names, question, weights,
                                                                              milvus_useful_list, es_useful_list, top_k)

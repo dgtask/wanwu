@@ -60,7 +60,7 @@
           <el-button
             type="text"
             size="mini"
-            :disabled="[0,1,3].includes(scope.row.status)"
+            :disabled="[0, 1, 3].includes(scope.row.status)"
             @click="handleDownload(scope.row)"
           >
             {{ $t("knowledgeManage.qaExport.download") }}
@@ -148,8 +148,8 @@ export default {
         .then((res) => {
           if (res.code === 0) {
             const data = res.data || {};
-            this.tableData = data.list || data.records || [];
-            this.pagination.total = data.total || data.count || 0;
+            this.tableData = data.list || [];
+            this.pagination.total = data.total || 0;
           }
         })
         .catch(() => {})
@@ -166,12 +166,12 @@ export default {
       return "pending";
     },
     handleDownload(row) {
-      const url = row.filePath;
+      const url = "/user/api" + row.filePath;
       if (!url) {
         this.$message.warning(this.$t("common.noData"));
         return;
       }
-      window.open(url, "_blank",'noopener,noreferrer');
+      window.open(url, "_blank", "noopener,noreferrer");
     },
     handleDelete(row) {
       const qaExportRecordId = row.qaExportRecordId;

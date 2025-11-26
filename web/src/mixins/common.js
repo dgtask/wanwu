@@ -38,8 +38,8 @@ export default {
       // 判断文件是否为图片类型
       const isImageFile = (f) => {
         if (!f || !f.name) return false;
-        var ext = (f.name.split(".").pop() || "").toLowerCase();
-        var imageExts = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"];
+        let ext = (f.name.split(".").pop() || "").toLowerCase();
+        let imageExts = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"];
         return (
           imageExts.indexOf(ext) > -1 ||
           (f.type && f.type.indexOf("image/") === 0)
@@ -85,9 +85,9 @@ export default {
           });
 
           // 先找出第一个有效文件，判断文件类型
-          var firstValidFile = null;
-          for (var j = 0; j < rawFiles.length; j++) {
-            var tempFile = rawFiles[j];
+          let firstValidFile = null;
+          for (let j = 0; j < rawFiles.length; j++) {
+            let tempFile = rawFiles[j];
             if (!tempFile || !tempFile.name) continue;
             if (
               typeof tempFile.size !== "number" ||
@@ -95,8 +95,8 @@ export default {
               isNaN(tempFile.size)
             )
               continue;
-            var tempExt = (tempFile.name.split(".").pop() || "").toLowerCase();
-            var tempOkType =
+            let tempExt = (tempFile.name.split(".").pop() || "").toLowerCase();
+            let tempOkType =
               allowExt.indexOf(tempExt) > -1 ||
               (tempFile.type &&
                 (tempFile.type.indexOf("image/") === 0 ||
@@ -116,15 +116,15 @@ export default {
           }
 
           // 判断第一个有效文件是否为图片类型
-          var isImageType = isImageFile(firstValidFile);
+          let isImageType = isImageFile(firstValidFile);
           // 图片类型：使用 maxImageFiles 限制；非图片类型：限制为1个文件（覆盖之前）
-          var maxFiles = isImageType ? maxImageFiles : 1;
+          let maxFiles = isImageType ? maxImageFiles : 1;
 
           // 过滤非法/过大文件
           const safeFiles = [];
           const rejected = [];
-          for (var i = 0; i < rawFiles.length; i++) {
-            var f = rawFiles[i];
+          for (let i = 0; i < rawFiles.length; i++) {
+            let f = rawFiles[i];
 
             // 检查文件对象是否完整（必须有 name 属性）
             if (!f || !f.name) {
@@ -138,8 +138,8 @@ export default {
               continue;
             }
 
-            var ext = ((f.name && f.name.split(".").pop()) || "").toLowerCase();
-            var okType =
+            let ext = ((f.name && f.name.split(".").pop()) || "").toLowerCase();
+            let okType =
               allowExt.indexOf(ext) > -1 ||
               (f.type &&
                 (f.type.indexOf("image/") === 0 ||
@@ -152,7 +152,7 @@ export default {
             }
 
             // 检查当前文件是否为图片类型，确保文件类型一致
-            var currentFileIsImage = isImageFile(f);
+            let currentFileIsImage = isImageFile(f);
             if (!isImageType && currentFileIsImage) {
               // 如果第一个文件不是图片，但当前文件是图片，拒绝（保持类型一致）
               rejected.push(f);
@@ -194,7 +194,7 @@ export default {
 
           // 覆盖前释放旧的 ObjectURL，避免内存泄漏
           try {
-            var currentList = this && this.fileList;
+            let currentList = this && this.fileList;
             if (currentList && currentList.forEach) {
               currentList.forEach(function (f) {
                 try {

@@ -37,7 +37,7 @@ type Config struct {
 	Redis redis.Config `json:"redis" mapstructure:"redis"`
 	// microservice
 	Iam                ServiceConfig                   `json:"iam" mapstructure:"iam"`
-	Model              ModelConfig                     `json:"model" mapstructure:"model"`
+	Model              ServiceModelConfig              `json:"model" mapstructure:"model"`
 	MCP                ServiceConfig                   `json:"mcp" mapstructure:"mcp"`
 	App                ServiceConfig                   `json:"app" mapstructure:"app"`
 	Knowledge          ServiceConfig                   `json:"knowledge" mapstructure:"knowledge"`
@@ -48,6 +48,14 @@ type Config struct {
 	RagKnowledgeConfig RagKnowledgeConfig              `json:"rag-knowledge" mapstructure:"rag-knowledge"`
 	Workflow           WorkflowServiceConfig           `json:"workflow" mapstructure:"workflow"`
 	AgentScopeWorkFlow AgentScopeWorkFlowServiceConfig `json:"agentscope-workflow" mapstructure:"agentscope-workflow"`
+	Models             []*ModelConfig                  `json:"models" mapstructure:"models"`
+}
+
+type ModelConfig struct {
+	ModelId   string `json:"model_id" mapstructure:"model_id"`
+	Provider  string `json:"provider" mapstructure:"provider"`
+	ModelType string `json:"model_type" mapstructure:"model_type"`
+	Endpoint  string `json:"endpoint" mapstructure:"endpoint"`
 }
 
 type ServerConfig struct {
@@ -59,10 +67,11 @@ type ServerConfig struct {
 	CallbackUrl string `json:"callback_url" mapstructure:"callback_url"`
 }
 
-type ModelConfig struct {
+type ServiceModelConfig struct {
 	Host            string `json:"host" mapstructure:"host"`
 	PngTestFilePath string `json:"png_test_file_path" mapstructure:"png_test_file_path"`
 	PdfTestFilePath string `json:"pdf_test_file_path" mapstructure:"pdf_test_file_path"`
+	AsrTestFilePath string `json:"asr_test_file_path" mapstructure:"asr_test_file_path"`
 }
 
 type LogConfig struct {
@@ -330,4 +339,12 @@ func (c *Config) PromptTemp(templateId string) (PromptTempConfig, bool) {
 		}
 	}
 	return PromptTempConfig{}, false
+}
+
+func (c *Config) GetModelsMap() map[string]*ModelConfig {
+	modelsMap := make(map[string]*ModelConfig)
+	for _, m := range c.Models {
+		modelsMap[m.ModelId] = m
+	}
+	return modelsMap
 }

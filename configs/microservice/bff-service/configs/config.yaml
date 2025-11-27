@@ -168,6 +168,12 @@ doc-center:
     - key: workflow-1059
       val: 6.工作流/JSON反序列化.md
 
+models :
+  - model_id: "Asr"
+    model_type: "asr"
+    provider: "YuanJing"
+    endpoint: "https://maas-api.ai-yuanjing.com//openapi/synchronous/asr/audio/file/transfer/unicom/sync/file/asr"
+
 workflow-template:
   server_mode: local
   configPath: configs/microservice/bff-service/configs/workflow_template_config.yaml
@@ -207,6 +213,7 @@ model:
   host: model-service:8989
   png_test_file_path: "configs/microservice/bff-service/static/model/test.png"
   pdf_test_file_path: "configs/microservice/bff-service/static/model/test.pdf"
+  asr_test_file_path: "configs/microservice/bff-service/static/model/test.m4a"
 
 mcp:
   host: mcp-service:9898

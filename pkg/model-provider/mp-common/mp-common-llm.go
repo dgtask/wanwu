@@ -30,6 +30,8 @@ const (
 	TagGui           string = "GUI"
 	TagOcr           string = "OCR"
 	TagPdfParser     string = "文档解析"
+	TagAsr           string = "ASR"
+	TagText2Image    string = "文生图"
 	TagVisionSupport string = "图文问答"
 	TagToolCall      string = "工具调用"
 )

@@ -42,6 +42,8 @@ func registerCommon(apiV1 *gin.RouterGroup) {
 	mid.Sub("common").Reg(apiV1, "/model/select/ocr", http.MethodGet, v1.ListOcrModels, "ocr模型列表展示")
 	mid.Sub("common").Reg(apiV1, "/model/select/pdf-parser", http.MethodGet, v1.ListPdfParserModels, "pdf文档解析模型列表展示")
 	mid.Sub("common").Reg(apiV1, "/model/select/gui", http.MethodGet, v1.ListGuiModels, "gui模型列表展示")
+	mid.Sub("common").Reg(apiV1, "/model/select/asr", http.MethodGet, v1.ListAsrModels, "asr语音识别模型列表展示")
+	//mid.Sub("common").Reg(apiV1, "/model/select/text2image", http.MethodGet, v1.ListText2ImageModels, "文生图模型列表展示")
 
 	// 知识库通用
 	mid.Sub("common").Reg(apiV1, "/knowledge/select", http.MethodPost, v1.GetKnowledgeSelect, "查询用户知识库列表")

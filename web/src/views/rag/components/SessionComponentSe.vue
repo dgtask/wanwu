@@ -419,11 +419,11 @@ export default {
     },
     getTitle(type){
       if(type === 'qa_start'){
-        return '问题库搜索中...'
+        return this.$t('app.qaSearching')
       }else if(type === 'knowledge_start'){
-        return '知识库搜索中...'
+        return this.$t('app.knowledgeSearch')
       }else{
-        return '问答库'
+        return this.$t('knowledgeManage.qaDatabase.name')
       }
     },
     replaceHTML(data, n) {
@@ -431,7 +431,7 @@ export default {
       var a = new RegExp("<think>");
       var b = new RegExp("</think>");
       if (b.test(data)) {
-        n.thinkText = "已深度思考";
+        n.thinkText = this.$t('agent.alreadyThink');
       }
       // 如果没有返回前缀，则补上
       if (b.test(data) && !a.test(data)) {
@@ -493,7 +493,7 @@ export default {
       return res;
     },
     copycb() {
-      this.$message.success("内容已复制到粘贴板");
+      this.$message.success(this.$t('agent.copyTips'));
     },
     collapseClick(n, m, j) {
       if (!m.collapse) {
@@ -519,7 +519,7 @@ export default {
     },
     replaceLastData(index, data) {
       if (!data.response && data.finish === 1 ) {
-        data.response = "无响应数据";
+        data.response = this.$t('app.noResponse');
       }
       this.scrollBottom();
       this.$set(this.session_data.history, index, data);
@@ -606,7 +606,7 @@ export default {
           return {
             ...item,
             responseLoading: false,
-            pendingResponse: "本次回答已被终止",
+            pendingResponse: this.$t('app.stopStream'),
             pending: false, // 标记为已完成
             finish: 1,
           };

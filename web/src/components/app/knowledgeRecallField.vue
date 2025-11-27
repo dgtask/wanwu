@@ -6,7 +6,13 @@
         width="50%"
         :before-close="handleClose">
         <span v-if="dialogVisible">
-           <searchConfig ref='searchConfig' @sendConfigInfo="sendConfigInfo" :setType="'agent'" :config="config" :showGraphSwitch="showGraphSwitch"/>
+           <searchConfig 
+              ref='searchConfig' 
+              @sendConfigInfo="sendConfigInfo" 
+              :setType="'agent'" 
+              :config="config" 
+              :showGraphSwitch="showGraphSwitch"
+            />
         </span>
         <span slot="footer" class="dialog-footer">
             <el-button @click="dialogVisible = false">{{$t('common.button.cancel')}}</el-button>

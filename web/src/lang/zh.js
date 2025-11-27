@@ -146,6 +146,7 @@ export default {
       search: "查询",
       reset: "重置",
       import: "导入",
+      transform: "转化为",
       export: "导出",
       view: "查看",
       cancelPublish: "取消发布",
@@ -454,6 +455,16 @@ export default {
   modelAccess: {
     title: "模型管理",
     import: "模型导入",
+    support: '支持',
+    noSupport: '不支持',
+    type: {
+      yuanjing: '联通元景',
+      qwen: '通义千问',
+      huoshan: '火山引擎',
+      infini: '无问芯穹',
+      pdfParser: '文档解析服务',
+      asr: '语音识别模型'
+    },
     table: {
       modelName: "模型名称",
       modelDisplayName: "模型显示名称",
@@ -535,6 +546,7 @@ export default {
     promptRules: "请填写提示词",
     promptLimitRules: "提示词描述须在50字符以内",
     copySuccess: "复制成功",
+    copyFailed: "复制失败",
     selectModel: "选模型，可输入名称搜索",
     loadingText: "加载中...",
     promptOptimize: "提示词优化",
@@ -1460,6 +1472,11 @@ export default {
     linkQaDatabase:'关联问答库',
     selectQAdatabase:'选择问答库',
     qaSearchPlaceholder:'输入问答库名称搜索',
+    qaSearching:'问题库搜索中...',
+    knowledgeSearch:'知识库搜索中...',
+    noResponse:'无响应数据',
+    stopStream:'本次回答已被终止',
+    selectKnowledge:'请选择知识库',
     publishType: {
       private: "私密发布为应用：仅自己可见",
       organization: "公开发布为应用：组织内可见",

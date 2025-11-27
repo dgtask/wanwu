@@ -1445,6 +1445,11 @@ export default {
     linkQaDatabase:'关联问答库',
     selectQAdatabase:'选择问答库',
     qaSearchPlaceholder:'输入问答库名称搜索',
+    qaSearching:'问题库搜索中...',
+    knowledgeSearch:'知识库搜索中...',
+    noResponse:'无响应数据',
+    stopStream:'本次回答已被终止',
+    selectKnowledge:'请选择知识库',
     publishType: {
       private: "私密发布为应用：仅自己可见",
       organization: "公开发布为应用：组织内可见",

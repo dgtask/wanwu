@@ -263,12 +263,12 @@
             },
             verifiyFormParams(){
                 if (this.chatType === 'chat') return true;
-                const { matchType, priorityMatch, rerankModelId } = this.editForm.knowledgeConfig;
+                const { matchType, priorityMatch, rerankModelId } = this.editForm.knowledgeBaseConfig.config;
                 const isMixPriorityMatch = matchType === 'mix' && priorityMatch;
                 const conditions = [
-                    { check: !this.editForm.modelParams, message: '请选择模型' },
-                    { check: !isMixPriorityMatch && !rerankModelId, message: '请选择rerank模型' },
-                    { check: this.editForm.knowledgeBaseConfig.knowledgebases.length === 0, message: '请选择知识库' }
+                    { check: !this.editForm.modelParams, message: this.$t('knowledgeManage.create.selectModel') },
+                    { check: !isMixPriorityMatch && !rerankModelId, message:  this.$t('knowledgeManage.hitTest.selectRerankModel')},
+                    { check: this.editForm.knowledgeBaseConfig.knowledgebases.length === 0, message: this.$t('app.selectKnowledge') }
                 ];
                 for (const condition of conditions) {
                     if (condition.check) {

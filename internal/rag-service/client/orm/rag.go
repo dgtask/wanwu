@@ -31,7 +31,8 @@ func (c *Client) DeleteRag(ctx context.Context, req *rag_service.RagDeleteReq) *
 }
 func (c *Client) GetRag(ctx context.Context, req *rag_service.RagDetailReq) (*rag_service.RagInfo, *err_code.Status) {
 	info := &model.RagInfo{}
-
+	rerankConfig := &common.AppModelConfig{}
+	qaRerankConfig := &common.AppModelConfig{}
 	// 获取 rag 信息
 	err := sqlopt.WithRagID(req.RagId).Apply(c.db.WithContext(ctx)).First(info).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -82,25 +83,41 @@ func (c *Client) GetRag(ctx context.Context, req *rag_service.RagDetailReq) (*ra
 	}
 
 	// 设置检索方式默认值
-	if kbGlobalConfig.MatchType == "" {
+	if kbGlobalConfig.MatchType == "" || len(perKbConfig) == 0 {
 		kbGlobalConfig.KeywordPriority = model.KeywordPriorityDefault
 		kbGlobalConfig.MatchType = model.MatchTypeDefault
 		kbGlobalConfig.PriorityMatch = model.KnowledgePriorityDefault
 		kbGlobalConfig.Threshold = model.ThresholdDefault
 		kbGlobalConfig.SemanticsPriority = model.SemanticsPriorityDefault
 		kbGlobalConfig.TopK = model.TopKDefault
+	} else {
+		rerankConfig = &common.AppModelConfig{
+			Model:     info.RerankConfig.Model,
+			ModelId:   info.RerankConfig.ModelId,
+			Provider:  info.RerankConfig.Provider,
+			ModelType: info.RerankConfig.ModelType,
+			Config:    info.RerankConfig.Config,
+		}
 	}
 
 	if qaConfig.GlobalConfig == nil {
 		qaConfig.GlobalConfig = &rag_service.RagQAGlobalConfig{}
 	}
-	if qaConfig.GlobalConfig.MatchType == "" {
+	if qaConfig.GlobalConfig.MatchType == "" || len(qaConfig.PerKnowledgeConfigs) == 0 {
 		qaConfig.GlobalConfig.KeywordPriority = model.KeywordPriorityDefault
 		qaConfig.GlobalConfig.MatchType = model.MatchTypeDefault
 		qaConfig.GlobalConfig.PriorityMatch = model.QAPriorityDefault
 		qaConfig.GlobalConfig.Threshold = model.ThresholdDefault
 		qaConfig.GlobalConfig.SemanticsPriority = model.SemanticsPriorityDefault
 		qaConfig.GlobalConfig.TopK = model.TopKDefault
+	} else {
+		qaRerankConfig = &common.AppModelConfig{
+			Model:     info.QARerankConfig.Model,
+			ModelId:   info.QARerankConfig.ModelId,
+			Provider:  info.QARerankConfig.Provider,
+			ModelType: info.QARerankConfig.ModelType,
+			Config:    info.QARerankConfig.Config,
+		}
 	}
 
 	// 填充 rag 的信息
@@ -118,20 +135,8 @@ func (c *Client) GetRag(ctx context.Context, req *rag_service.RagDetailReq) (*ra
 			ModelType: info.ModelConfig.ModelType,
 			Config:    info.ModelConfig.Config,
 		},
-		RerankConfig: &common.AppModelConfig{
-			Model:     info.RerankConfig.Model,
-			ModelId:   info.RerankConfig.ModelId,
-			Provider:  info.RerankConfig.Provider,
-			ModelType: info.RerankConfig.ModelType,
-			Config:    info.RerankConfig.Config,
-		},
-		QArerankConfig: &common.AppModelConfig{
-			Model:     info.QARerankConfig.Model,
-			ModelId:   info.QARerankConfig.ModelId,
-			Provider:  info.QARerankConfig.Provider,
-			ModelType: info.QARerankConfig.ModelType,
-			Config:    info.QARerankConfig.Config,
-		},
+		RerankConfig:   rerankConfig,
+		QArerankConfig: qaRerankConfig,
 		KnowledgeBaseConfig: &rag_service.RagKnowledgeBaseConfig{
 			PerKnowledgeConfigs: perKbConfig,
 			GlobalConfig:        kbGlobalConfig,

@@ -178,30 +178,49 @@ func (s *Service) UpdateRagConfig(ctx context.Context, in *rag_service.UpdateRag
 	}
 	kbGlobalConfig := in.KnowledgeBaseConfig.GlobalConfig
 
+	rerankConfig := model.AppModelConfig{}
+	qaRerankConfig := model.AppModelConfig{}
+
 	// 设置检索方式默认值
-	if kbGlobalConfig.MatchType == "" {
+	if kbGlobalConfig.MatchType == "" || len(knowledgeIdList) == 0 {
 		kbGlobalConfig.KeywordPriority = model.KeywordPriorityDefault
 		kbGlobalConfig.MatchType = model.MatchTypeDefault
 		kbGlobalConfig.PriorityMatch = model.KnowledgePriorityDefault
 		kbGlobalConfig.Threshold = model.ThresholdDefault
 		kbGlobalConfig.SemanticsPriority = model.SemanticsPriorityDefault
 		kbGlobalConfig.TopK = model.TopKDefault
+	} else {
+		rerankConfig = model.AppModelConfig{
+			Provider:  in.RerankConfig.Provider,
+			Model:     in.RerankConfig.Model,
+			ModelId:   in.RerankConfig.ModelId,
+			ModelType: in.RerankConfig.ModelType,
+			Config:    in.RerankConfig.Config,
+		}
 	}
 
 	if in.QAknowledgeBaseConfig == nil {
 		in.QAknowledgeBaseConfig = &rag_service.RagQAKnowledgeBaseConfig{}
 	}
 	qaConfig := in.QAknowledgeBaseConfig
-	if in.QAknowledgeBaseConfig.GlobalConfig == nil {
+	if qaConfig.GlobalConfig == nil {
 		qaConfig.GlobalConfig = &rag_service.RagQAGlobalConfig{}
 	}
-	if qaConfig.GlobalConfig.MatchType == "" {
+	if qaConfig.GlobalConfig.MatchType == "" || len(qaConfig.PerKnowledgeConfigs) == 0 {
 		qaConfig.GlobalConfig.KeywordPriority = model.KeywordPriorityDefault
 		qaConfig.GlobalConfig.MatchType = model.MatchTypeDefault
 		qaConfig.GlobalConfig.PriorityMatch = model.QAPriorityDefault
 		qaConfig.GlobalConfig.Threshold = model.ThresholdDefault
 		qaConfig.GlobalConfig.SemanticsPriority = model.SemanticsPriorityDefault
 		qaConfig.GlobalConfig.TopK = model.TopKDefault
+	} else {
+		qaRerankConfig = model.AppModelConfig{
+			Provider:  in.QArerankConfig.Provider,
+			Model:     in.QArerankConfig.Model,
+			ModelId:   in.QArerankConfig.ModelId,
+			ModelType: in.QArerankConfig.ModelType,
+			Config:    in.QArerankConfig.Config,
+		}
 	}
 	in.QAknowledgeBaseConfig.GlobalConfig = qaConfig.GlobalConfig
 	// 序列化QAknowledgeBaseConfig
@@ -224,20 +243,8 @@ func (s *Service) UpdateRagConfig(ctx context.Context, in *rag_service.UpdateRag
 			ModelType: in.ModelConfig.ModelType,
 			Config:    in.ModelConfig.Config,
 		},
-		RerankConfig: model.AppModelConfig{
-			Provider:  in.RerankConfig.Provider,
-			Model:     in.RerankConfig.Model,
-			ModelId:   in.RerankConfig.ModelId,
-			ModelType: in.RerankConfig.ModelType,
-			Config:    in.RerankConfig.Config,
-		},
-		QARerankConfig: model.AppModelConfig{
-			Provider:  in.QArerankConfig.Provider,
-			Model:     in.QArerankConfig.Model,
-			ModelId:   in.QArerankConfig.ModelId,
-			ModelType: in.QArerankConfig.ModelType,
-			Config:    in.QArerankConfig.Config,
-		},
+		RerankConfig:   rerankConfig,
+		QARerankConfig: qaRerankConfig,
 		KnowledgeBaseConfig: model.KnowledgeBaseConfig{
 			KnowId:            knowledgeIds,
 			MaxHistory:        int64(kbGlobalConfig.MaxHistory),
